@@ -1,1 +1,5 @@
 deploy/.env.production
+**/node_modules/
+*.log
+.env
+*.env

@@ -1,0 +1,127 @@
+<main class="page">
+  <header class="topbar">
+    <div class="topbar-shell">
+      <div class="brand">
+        <img src="/assets/Logo/logo_provisional.jpg" alt="AEGIS Wiki" />
+        <div>
+          <h1>AEGIS Wiki</h1>
+          <small>Guia comunitaria de Elden Ring</small>
+          @if (isAdmin()) {
+            <small class="domain">{{ domain() }}</small>
+          }
+        </div>
+      </div>
+      <nav class="main-nav" aria-label="Navegacion principal">
+        @for (item of topMenu(); track item.label) {
+          <a
+            class="nav-item"
+            [routerLink]="item.routerLink ?? '/'"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: item.routerLink === '/' }"
+          >
+            @if (item.icon) {
+              <i [class]="item.icon" aria-hidden="true"></i>
+            }
+            <span>{{ item.label }}</span>
+          </a>
+        }
+      </nav>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <p-card styleClass="panel-card" header="Sesion">
+        @if (currentUser(); as user) {
+          <div class="session-side">
+            <p-tag severity="info" [value]="'Sesion: ' + user.nombre"></p-tag>
+          </div>
+        } @else {
+          <div class="session-side auth-buttons">
+            <p-tag severity="contrast" value="No autenticado"></p-tag>
+            <button pButton label="Login" icon="pi pi-sign-in" routerLink="/login" styleClass="w-full"></button>
+            <button pButton label="Registro" icon="pi pi-user-plus" severity="info" routerLink="/registro" styleClass="w-full"></button>
+          </div>
+        }
+      </p-card>
+
+      <p-card styleClass="panel-card" header="Explorar wiki">
+        <div class="search-box">
+          <i class="pi pi-search"></i>
+          <input
+            pInputText
+            type="text"
+            [ngModel]="search()"
+            (ngModelChange)="search.set($event)"
+            placeholder="Buscar seccion"
+          />
+        </div>
+        <p-panelMenu [model]="sidebarItems()"></p-panelMenu>
+      </p-card>
+
+      @if (isAdmin()) {
+        <p-card styleClass="panel-card" header="Estado del backend">
+          @if (loading()) {
+            <div class="loading-state">
+              <p-progress-spinner strokeWidth="4" ariaLabel="Cargando"></p-progress-spinner>
+              <p>Cargando armas...</p>
+            </div>
+          } @else if (error()) {
+            <p-message severity="error" [text]="error() ?? ''"></p-message>
+          } @else {
+            <div class="status-ok">
+              <p-tag severity="success" value="Conectado"></p-tag>
+              <p>{{ armas().length }} armas cargadas desde la API.</p>
+            </div>
+          }
+        </p-card>
+
+        <p-card styleClass="panel-card" header="Estadisticas del sitio">
+          <div class="status-ok">
+            <p-tag severity="contrast" [value]="stats().sections + ' secciones'"></p-tag>
+            <p-tag severity="info" [value]="stats().weapons + ' armas'"></p-tag>
+            <p-tag severity="warn" [value]="stats().pages + ' paginas internas'"></p-tag>
+            <small>Actualizado: {{ updatedAt() | date: 'short' }}</small>
+          </div>
+        </p-card>
+      }
+
+      <p-card styleClass="panel-card" header="Redes sociales">
+        <div class="social-links">
+          <a pButton severity="secondary" icon="pi pi-discord" href="https://discord.com" target="_blank" rel="noopener noreferrer">Discord</a>
+          <a pButton severity="secondary" icon="pi pi-youtube" href="https://youtube.com" target="_blank" rel="noopener noreferrer">YouTube</a>
+          <a pButton severity="secondary" icon="pi pi-github" href="https://github.com" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+      </p-card>
+    </aside>
+
+    <section class="content">
+      <div class="content-shell">
+        <router-outlet />
+      </div>
+    </section>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-meta">
+      <p>AEGIS Wiki · Contenido comunitario de Elden Ring</p>
+      <nav class="footer-links" aria-label="Enlaces institucionales">
+        @for (item of footerMenu; track item.path) {
+          <a [routerLink]="item.path">{{ item.label }}</a>
+        }
+      </nav>
+    </div>
+    <div class="footer-social">
+      <a pButton icon="pi pi-discord" text rounded ariaLabel="Discord" href="https://discord.com" target="_blank" rel="noopener noreferrer">
+        <span class="sr-only">Discord</span>
+      </a>
+      <a pButton icon="pi pi-youtube" text rounded ariaLabel="YouTube" href="https://youtube.com" target="_blank" rel="noopener noreferrer">
+        <span class="sr-only">YouTube</span>
+      </a>
+      <a pButton icon="pi pi-instagram" text rounded ariaLabel="Instagram" href="https://instagram.com" target="_blank" rel="noopener noreferrer">
+        <span class="sr-only">Instagram</span>
+      </a>
+    </div>
+  </footer>
+
+</main>

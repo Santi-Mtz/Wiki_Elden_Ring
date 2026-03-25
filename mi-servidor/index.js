@@ -107,6 +107,109 @@ async function initDatabase() {
     `);
     console.log('Tabla armas verificada');
 
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS clases (
+        id SERIAL PRIMARY KEY,
+        nombre VARCHAR(60) NOT NULL UNIQUE,
+        enfoque VARCHAR(80) NOT NULL,
+        vigor SMALLINT NOT NULL DEFAULT 10,
+        mente SMALLINT NOT NULL DEFAULT 10,
+        resistencia SMALLINT NOT NULL DEFAULT 10,
+        fuerza SMALLINT NOT NULL DEFAULT 10,
+        destreza SMALLINT NOT NULL DEFAULT 10,
+        inteligencia SMALLINT NOT NULL DEFAULT 10,
+        fe SMALLINT NOT NULL DEFAULT 10,
+        arcano SMALLINT NOT NULL DEFAULT 10,
+        descripcion TEXT,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+      )
+    `);
+    console.log('Tabla clases verificada');
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS armaduras (
+        id SERIAL PRIMARY KEY,
+        nombre VARCHAR(120) NOT NULL UNIQUE,
+        categoria VARCHAR(50) NOT NULL,
+        peso NUMERIC(5,2) NOT NULL DEFAULT 0,
+        defensa_fisica NUMERIC(6,2) NOT NULL DEFAULT 0,
+        defensa_magica NUMERIC(6,2) NOT NULL DEFAULT 0,
+        descripcion TEXT,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+      )
+    `);
+    console.log('Tabla armaduras verificada');
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS hechizos (
+        id SERIAL PRIMARY KEY,
+        nombre VARCHAR(120) NOT NULL UNIQUE,
+        costo_fp SMALLINT NOT NULL DEFAULT 0,
+        requisitos VARCHAR(120),
+        descripcion TEXT,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+      )
+    `);
+    console.log('Tabla hechizos verificada');
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS milagros (
+        id SERIAL PRIMARY KEY,
+        nombre VARCHAR(120) NOT NULL UNIQUE,
+        costo_fp SMALLINT NOT NULL DEFAULT 0,
+        requisitos VARCHAR(120),
+        descripcion TEXT,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+      )
+    `);
+    console.log('Tabla milagros verificada');
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS talismanes (
+        id SERIAL PRIMARY KEY,
+        nombre VARCHAR(120) NOT NULL UNIQUE,
+        efecto TEXT NOT NULL,
+        ubicacion TEXT,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+      )
+    `);
+    console.log('Tabla talismanes verificada');
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS personajes (
+        id SERIAL PRIMARY KEY,
+        nombre VARCHAR(120) NOT NULL UNIQUE,
+        faccion VARCHAR(120),
+        zona VARCHAR(120),
+        descripcion TEXT,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+      )
+    `);
+    console.log('Tabla personajes verificada');
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS builds (
+        id SERIAL PRIMARY KEY,
+        nombre VARCHAR(120) NOT NULL UNIQUE,
+        enfoque VARCHAR(80) NOT NULL,
+        nivel_recomendado VARCHAR(40),
+        distribucion_puntos VARCHAR(180),
+        descripcion TEXT,
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+      )
+    `);
+    console.log('Tabla builds verificada');
+
+    await pool.query(`
+      ALTER TABLE builds
+      ADD COLUMN IF NOT EXISTS nivel_recomendado VARCHAR(40)
+    `);
+
+    await pool.query(`
+      ALTER TABLE builds
+      ADD COLUMN IF NOT EXISTS distribucion_puntos VARCHAR(180)
+    `);
+
     databaseAvailable = true;
     console.log('✅ Base de datos iniciada correctamente');
   } catch (error) {

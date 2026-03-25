@@ -1,0 +1,8 @@
+[build]
+builder = "NIXPACKS"
+buildCommand = "cd mi-servidor && npm install"
+
+[deploy]
+startCommand = "cd mi-servidor && npm start"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10

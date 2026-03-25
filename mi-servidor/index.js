@@ -16,7 +16,26 @@ const watchedTables = ['armas', 'armaduras', 'hechizos', 'milagros', 'clases', '
 let lastWikiSignatures = null;
 const mfaLoginChallenges = new Map();
 
-app.use(cors({ origin: ['http://localhost:4200'] }));
+const allowedOrigins = [
+  'http://localhost:4200',
+  'http://127.0.0.1:4200',
+  ...String(process.env.CORS_ORIGINS || '')
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean)
+];
+
+const corsOptions = {
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+      return;
+    }
+    callback(new Error('Origen no permitido por CORS'));
+  }
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 async function initDatabase() {

@@ -7,6 +7,7 @@ const { generateSecret, generateURI, verifySync } = require('otplib');
 const pool = require('./db'); // Importamos la conexión
 const app = express();
 const serverPort = Number(process.env.PORT || 3000);
+const serverHost = String(process.env.HOST || '0.0.0.0');
 const adminEmail = String(process.env.ADMIN_EMAIL || 'admin@aegis.com').trim().toLowerCase();
 let databaseAvailable = false;
 let inMemoryUserId = 1;
@@ -37,6 +38,14 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.use(express.json());
+
+app.get('/', (req, res) => {
+  res.status(200).send('AEGIS Wiki API OK');
+});
+
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
 
 async function initDatabase() {
   console.log('Iniciando base de datos...');
@@ -886,8 +895,8 @@ async function startServer() {
   try {
     await initDatabase();
     startWikiWatcher();
-    app.listen(serverPort, () => {
-      console.log(`Servidor AEGIS corriendo en el puerto ${serverPort}`);
+    app.listen(serverPort, serverHost, () => {
+      console.log(`Servidor AEGIS corriendo en ${serverHost}:${serverPort}`);
     });
   } catch (error) {
     console.error('Error al arrancar el servidor:', error.message);

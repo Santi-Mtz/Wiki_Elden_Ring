@@ -164,6 +164,59 @@
 	align-items: center;
 }
 
+.session-user-card {
+	display: grid;
+	gap: 10px;
+	width: 100%;
+}
+
+.session-user-header {
+	display: grid;
+	grid-template-columns: 38px minmax(0, 1fr);
+	gap: 10px;
+	align-items: center;
+}
+
+.session-avatar {
+	width: 38px;
+	height: 38px;
+	display: inline-grid;
+	place-items: center;
+	border-radius: 50%;
+	background: linear-gradient(145deg, #385a84, #203751);
+	color: #eaf4ff;
+	font-weight: 700;
+	border: 1px solid #6f93bf;
+}
+
+.session-user-meta {
+	display: grid;
+	gap: 2px;
+	min-width: 0;
+}
+
+.session-user-meta strong {
+	font-size: 1rem;
+	line-height: 1.1;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.session-user-meta small {
+	color: #9eb3cf;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.session-user-actions {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+	align-items: center;
+}
+
 .session-side.auth-buttons {
 	flex-direction: column;
 	gap: 8px;

@@ -118,10 +118,7 @@ export class App implements OnInit {
         label: item.label,
         icon: item.icon,
         routerLink: item.routerLink
-        })),
-        ...(this.isAuthenticated()
-          ? [{ label: 'Salir', icon: 'pi pi-sign-out', command: () => this.logout() }]
-          : [])
+        }))
       ]
     }
   ]);

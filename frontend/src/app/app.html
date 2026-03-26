@@ -51,8 +51,18 @@
 
       <p-card styleClass="panel-card" header="Sesion">
         @if (currentUser(); as user) {
-          <div class="session-side">
-            <p-tag severity="info" [value]="'Sesion: ' + user.nombre"></p-tag>
+          <div class="session-user-card">
+            <div class="session-user-header">
+              <div class="session-avatar">{{ user.nombre.charAt(0).toUpperCase() }}</div>
+              <div class="session-user-meta">
+                <strong>{{ user.nombre }}</strong>
+                <small>{{ user.email }}</small>
+              </div>
+            </div>
+            <div class="session-user-actions">
+              <p-tag severity="info" [value]="user.role === 'admin' ? 'Administrador' : 'Jugador'"></p-tag>
+              <button pButton type="button" icon="pi pi-user" label="Perfil" [routerLink]="user.role === 'admin' ? '/vista-admin' : '/vista-usuario'" severity="secondary" size="small"></button>
+            </div>
           </div>
         } @else {
           <div class="session-side auth-buttons">

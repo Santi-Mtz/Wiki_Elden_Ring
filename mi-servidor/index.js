@@ -843,10 +843,18 @@ app.post('/armas', async (req, res) => {
       ]
     );
 
+    // Notificar a los clientes SSE
+    broadcastWikiUpdate({ table: 'armas' });
+
     return res.status(201).json(insert.rows[0]);
   } catch (err) {
-    console.error(err.message);
-    return res.status(500).json({ message: 'No se pudo crear el arma.' });
+    console.error('Error al crear arma:', err.message);
+    
+    if (err.code === '23505') {
+      return res.status(409).json({ message: `El arma "${safeName}" ya existe.` });
+    }
+    
+    return res.status(500).json({ message: 'No se pudo crear el arma: ' + err.message });
   }
 });
 
@@ -904,10 +912,18 @@ app.put('/armas/:id', async (req, res) => {
       return res.status(404).json({ message: 'Arma no encontrada.' });
     }
 
+    // Notificar a los clientes SSE
+    broadcastWikiUpdate({ table: 'armas' });
+
     return res.json(update.rows[0]);
   } catch (err) {
-    console.error(err.message);
-    return res.status(500).json({ message: 'No se pudo actualizar el arma.' });
+    console.error('Error al actualizar arma:', err.message);
+    
+    if (err.code === '23505') {
+      return res.status(409).json({ message: `El arma "${safeName}" ya existe.` });
+    }
+    
+    return res.status(500).json({ message: 'No se pudo actualizar el arma: ' + err.message });
   }
 });
 
@@ -931,10 +947,13 @@ app.delete('/armas/:id', async (req, res) => {
       return res.status(404).json({ message: 'Arma no encontrada.' });
     }
 
+    // Notificar a los clientes SSE
+    broadcastWikiUpdate({ table: 'armas' });
+
     return res.json({ message: 'Arma eliminada.' });
   } catch (err) {
-    console.error(err.message);
-    return res.status(500).json({ message: 'No se pudo eliminar el arma.' });
+    console.error('Error al eliminar arma:', err.message);
+    return res.status(500).json({ message: 'No se pudo eliminar el arma: ' + err.message });
   }
 });
 

@@ -5,9 +5,9 @@ import { CardModule } from 'primeng/card';
 import { TagModule } from 'primeng/tag';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
-import { DropdownModule } from 'primeng/dropdown';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { CommonModule } from '@angular/common';
 
 interface TipoArma {
   id: number;
@@ -27,7 +27,7 @@ interface ArmaAdmin {
 @Component({
   selector: 'app-vista-admin-page',
   standalone: true,
-  imports: [CardModule, TagModule, ButtonModule, RouterLink, FormsModule, InputTextModule, DropdownModule],
+  imports: [CardModule, TagModule, ButtonModule, RouterLink, FormsModule, InputTextModule, CommonModule],
   template: `
     <section class="page-section">
       <div class="section-intro">
@@ -101,13 +101,12 @@ interface ArmaAdmin {
 
                 <label>
                   <span>Tipo</span>
-                  <p-dropdown
-                    [options]="tiposArma()"
-                    optionLabel="nombre"
-                    optionValue="id"
-                    [(ngModel)]="form.tipo_id"
-                    placeholder="Selecciona tipo"
-                  ></p-dropdown>
+                  <select [(ngModel)]="form.tipo_id">
+                    <option [value]="null">-- Selecciona tipo --</option>
+                    @for (tipo of tiposArma(); track tipo.id) {
+                      <option [value]="tipo.id">{{ tipo.nombre }}</option>
+                    }
+                  </select>
                 </label>
 
                 <label>

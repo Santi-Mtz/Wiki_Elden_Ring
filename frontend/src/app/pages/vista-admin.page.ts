@@ -195,8 +195,10 @@ export class VistaAdminPage {
         this.armas.set(data ?? []);
         this.errorMessage.set('');
       },
-      error: () => {
-        this.errorMessage.set('No se pudo cargar el listado de armas.');
+      error: (err) => {
+        const errorMsg = `No se pudo cargar el listado de armas: ${err?.error?.message ?? err?.message ?? 'error desconocido'}`;
+        this.errorMessage.set(errorMsg);
+        console.error('Error al cargar armas:', err);
       }
     });
   }
@@ -247,7 +249,9 @@ export class VistaAdminPage {
         this.loadArmas();
       },
       error: (err) => {
-        this.errorMessage.set(err?.error?.message ?? 'No se pudo guardar el arma.');
+        const errorMsg = err?.error?.message ?? err?.error ?? 'No se pudo guardar el arma.';
+        this.errorMessage.set(String(errorMsg));
+        console.error('Error al guardar arma:', err);
       }
     });
   }
@@ -262,7 +266,9 @@ export class VistaAdminPage {
         this.loadArmas();
       },
       error: (err) => {
-        this.errorMessage.set(err?.error?.message ?? 'No se pudo eliminar el arma.');
+        const errorMsg = err?.error?.message ?? err?.error ?? 'No se pudo eliminar el arma.';
+        this.errorMessage.set(String(errorMsg));
+        console.error('Error al eliminar arma:', err);
       }
     });
   }

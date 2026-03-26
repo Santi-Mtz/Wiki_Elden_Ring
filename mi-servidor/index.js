@@ -807,6 +807,20 @@ app.get('/armas', async (req, res) => {
   }
 });
 
+app.get('/tipos-arma', async (req, res) => {
+  try {
+    if (!databaseAvailable) {
+      return res.json([]);
+    }
+
+    const resultado = await pool.query('SELECT id, nombre FROM tipos_arma ORDER BY nombre ASC');
+    res.json(resultado.rows);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Error en el servidor");
+  }
+});
+
 app.post('/armas', async (req, res) => {
   if (!ensureAdmin(req, res)) {
     return;

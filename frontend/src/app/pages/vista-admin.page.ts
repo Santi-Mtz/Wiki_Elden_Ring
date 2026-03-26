@@ -5,8 +5,14 @@ import { CardModule } from 'primeng/card';
 import { TagModule } from 'primeng/tag';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
+import { DropdownModule } from 'primeng/dropdown';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+
+interface TipoArma {
+  id: number;
+  nombre: string;
+}
 
 interface ArmaAdmin {
   id: number;
@@ -21,7 +27,7 @@ interface ArmaAdmin {
 @Component({
   selector: 'app-vista-admin-page',
   standalone: true,
-  imports: [CardModule, TagModule, ButtonModule, RouterLink, FormsModule, InputTextModule],
+  imports: [CardModule, TagModule, ButtonModule, RouterLink, FormsModule, InputTextModule, DropdownModule],
   template: `
     <section class="page-section">
       <div class="section-intro">
@@ -94,6 +100,17 @@ interface ArmaAdmin {
                 </label>
 
                 <label>
+                  <span>Tipo</span>
+                  <p-dropdown
+                    [options]="tiposArma()"
+                    optionLabel="nombre"
+                    optionValue="id"
+                    [(ngModel)]="form.tipo_id"
+                    placeholder="Selecciona tipo"
+                  ></p-dropdown>
+                </label>
+
+                <label>
                   <span>Rareza (1-5)</span>
                   <input pInputText type="number" min="1" max="5" [(ngModel)]="form.rareza" />
                 </label>
@@ -158,16 +175,19 @@ export class VistaAdminPage {
   protected readonly currentUser = this.authService.currentUser;
   protected readonly isAdmin = this.authService.isAdmin;
   protected readonly armas = signal<ArmaAdmin[]>([]);
+  protected readonly tiposArma = signal<TipoArma[]>([]);
   protected readonly editingId = signal<number | null>(null);
   protected readonly errorMessage = signal('');
   protected readonly form: {
     nombre: string;
+    tipo_id: number | null;
     rareza: number;
     peso: number;
     escalado: string;
     descripcion: string;
   } = {
     nombre: '',
+    tipo_id: null,
     rareza: 1,
     peso: 0,
     escalado: '',
@@ -187,6 +207,18 @@ export class VistaAdminPage {
 
   constructor() {
     this.loadArmas();
+    this.loadTipos();
+  }
+
+  protected loadTipos(): void {
+    this.http.get<TipoArma[]>('/api/tipos-arma').subscribe({
+      next: (data) => {
+        this.tiposArma.set(data ?? []);
+      },
+      error: (err) => {
+        console.error('Error al cargar tipos de arma:', err);
+      }
+    });
   }
 
   protected loadArmas(): void {
@@ -206,6 +238,7 @@ export class VistaAdminPage {
   protected editArma(arma: ArmaAdmin): void {
     this.editingId.set(arma.id);
     this.form.nombre = arma.nombre;
+    this.form.tipo_id = arma.tipo_id;
     this.form.rareza = arma.rareza;
     this.form.peso = Number(arma.peso);
     this.form.escalado = arma.escalado ?? '';
@@ -215,6 +248,7 @@ export class VistaAdminPage {
   protected resetForm(): void {
     this.editingId.set(null);
     this.form.nombre = '';
+    this.form.tipo_id = null;
     this.form.rareza = 1;
     this.form.peso = 0;
     this.form.escalado = '';
@@ -225,11 +259,11 @@ export class VistaAdminPage {
   protected saveArma(): void {
     const payload = {
       nombre: this.form.nombre,
+      tipo_id: this.form.tipo_id,
       rareza: this.form.rareza,
       peso: this.form.peso,
       escalado: this.form.escalado,
-      descripcion: this.form.descripcion,
-      tipo_id: null
+      descripcion: this.form.descripcion
     };
 
     if (!payload.nombre.trim()) {

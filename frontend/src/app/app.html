@@ -13,12 +13,12 @@
       </div>
 
       <nav class="main-nav" aria-label="Navegacion principal">
-        @for (item of topMenu(); track item.label) {
+        @for (item of topSections(); track item.label) {
           <a
             class="nav-item"
-            [routerLink]="item.routerLink ?? '/'"
+            [routerLink]="item.path"
             routerLinkActive="active"
-            [routerLinkActiveOptions]="{ exact: item.routerLink === '/' }"
+            [routerLinkActiveOptions]="{ exact: item.path === '/' }"
           >
             @if (item.icon) {
               <i [class]="item.icon" aria-hidden="true"></i>
@@ -71,7 +71,7 @@
             type="text"
             [ngModel]="search()"
             (ngModelChange)="search.set($event)"
-            placeholder="Buscar seccion"
+            placeholder="Buscar categoria"
           />
         </div>
         <p-panelMenu [model]="sidebarItems()"></p-panelMenu>

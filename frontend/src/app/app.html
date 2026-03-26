@@ -11,6 +11,17 @@
         [attr.aria-expanded]="sidebarOpen()"
       ></button>
 
+      <div class="brand">
+        <img src="/assets/Logo/logo_provisional.jpg" alt="AEGIS Wiki" />
+        <div>
+          <h1>AEGIS Wiki</h1>
+          <small>Guia comunitaria de Elden Ring</small>
+          @if (isAdmin()) {
+            <small class="domain">{{ domain() }}</small>
+          }
+        </div>
+      </div>
+
       <nav class="main-nav" aria-label="Navegacion principal">
         @for (item of topMenu(); track item.label) {
           <a
@@ -35,7 +46,7 @@
     <aside class="sidebar" [class.open]="sidebarOpen()" aria-label="Panel lateral" [attr.aria-hidden]="!sidebarOpen()">
       <div class="sidebar-head">
         <strong>Panel de navegacion</strong>
-        <button pButton type="button" icon="pi pi-times" text rounded ariaLabel="Cerrar panel" (click)="closeSidebar()"></button>
+        <button pButton type="button" icon="pi pi-times" text rounded styleClass="sidebar-close" ariaLabel="Cerrar panel" (click)="closeSidebar()"></button>
       </div>
 
       <p-card styleClass="panel-card" header="Sesion">

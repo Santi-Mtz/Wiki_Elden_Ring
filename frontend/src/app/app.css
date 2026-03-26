@@ -186,6 +186,14 @@
 	display: grid;
 	gap: 16px;
 	align-content: start;
+	-ms-overflow-style: none;
+	scrollbar-width: none;
+}
+
+.sidebar::-webkit-scrollbar {
+	display: none;
+	width: 0;
+	height: 0;
 }
 
 .sidebar-head {

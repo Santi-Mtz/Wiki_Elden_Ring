@@ -1,16 +1,16 @@
 <main class="page">
   <header class="topbar">
     <div class="topbar-shell">
-      <div class="brand">
-        <img src="/assets/Logo/logo_provisional.jpg" alt="AEGIS Wiki" />
-        <div>
-          <h1>AEGIS Wiki</h1>
-          <small>Guia comunitaria de Elden Ring</small>
-          @if (isAdmin()) {
-            <small class="domain">{{ domain() }}</small>
-          }
-        </div>
-      </div>
+      <button
+        pButton
+        type="button"
+        class="sidebar-toggle"
+        [label]="sidebarOpen() ? 'Cerrar panel' : 'Abrir panel'"
+        [icon]="sidebarOpen() ? 'pi pi-times' : 'pi pi-bars'"
+        (click)="toggleSidebar()"
+        [attr.aria-expanded]="sidebarOpen()"
+      ></button>
+
       <nav class="main-nav" aria-label="Navegacion principal">
         @for (item of topMenu(); track item.label) {
           <a
@@ -26,16 +26,6 @@
           </a>
         }
       </nav>
-
-      <button
-        pButton
-        type="button"
-        class="sidebar-toggle"
-        [label]="sidebarOpen() ? 'Cerrar panel' : 'Abrir panel'"
-        [icon]="sidebarOpen() ? 'pi pi-times' : 'pi pi-bars'"
-        (click)="toggleSidebar()"
-        [attr.aria-expanded]="sidebarOpen()"
-      ></button>
     </div>
   </header>
 

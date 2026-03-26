@@ -180,8 +180,8 @@
 	border: 1px solid #2d3846;
 	background: rgba(13, 18, 26, 0.96);
 	box-shadow: 0 20px 34px rgba(0, 0, 0, 0.45);
-	max-height: calc(100vh - 22px);
-	overflow-y: auto;
+	max-height: none;
+	overflow-y: hidden;
 	transform: none;
 	display: grid;
 	gap: 16px;
@@ -373,12 +373,13 @@
 		position: fixed;
 		top: 14px;
 		left: 14px;
-		bottom: 14px;
+		bottom: auto;
 		width: min(360px, calc(100vw - 28px));
 		z-index: 50;
 		transform: translateX(calc(-100% - 24px));
 		transition: transform 0.25s ease;
 		max-height: none;
+		overflow-y: hidden;
 	}
 
 	.sidebar.open {
@@ -440,7 +441,7 @@
 		width: min(340px, calc(100vw - 20px));
 		left: 10px;
 		top: 10px;
-		bottom: 10px;
+		bottom: auto;
 	}
 
 	.page {

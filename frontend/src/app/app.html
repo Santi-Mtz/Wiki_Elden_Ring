@@ -62,6 +62,7 @@
             <div class="session-user-actions">
               <p-tag severity="info" [value]="user.role === 'admin' ? 'Administrador' : 'Jugador'"></p-tag>
               <button pButton type="button" icon="pi pi-user" label="Perfil" [routerLink]="user.role === 'admin' ? '/vista-admin' : '/vista-usuario'" severity="secondary" size="small"></button>
+              <button pButton type="button" icon="pi pi-sign-out" label="Salir" severity="danger" size="small" (click)="logout()"></button>
             </div>
           </div>
         } @else {

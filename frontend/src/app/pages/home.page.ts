@@ -11,30 +11,34 @@ import { ButtonModule } from 'primeng/button';
   template: `
     <section class="page-section">
       <div class="section-intro">
-        <h3>Panel Principal</h3>
+        <h3>Panel principal</h3>
         <p>Tu ruta por las Tierras Intermedias empieza aqui.</p>
       </div>
 
       <p-card subheader="Guia comunitaria para avanzar con confianza">
         <div class="home-hero home-hero-v2">
           <div class="home-hero-content">
+            <span class="home-kicker">Ruta recomendada</span>
             <h3 class="home-title">
               <span>Bienvenido,</span>
               <strong>Sinluz</strong>
             </h3>
-            <span class="home-kicker">Ruta del Sinluz</span>
-            <h4>Avanza con foco en tres pasos</h4>
+            <h4>Plan de progreso para arrancar fuerte</h4>
+
+            <p class="home-lead">
+              Construye una base solida, define tu estilo y evita perder runas en decisiones tempranas.
+            </p>
 
             <ol class="home-steps">
-              <li>Explora armas y armaduras para definir tu estilo.</li>
-              <li>Combina talismanes y hechizos con objetivos claros.</li>
-              <li>Ajusta tu build y entra al combate con ventaja.</li>
+              <li>Escoge una categoria de armas y domina su ritmo.</li>
+              <li>Refuerza stats clave con talismanes y hechizos que si combinen.</li>
+              <li>Sube de nivel con objetivo y no por impulso.</li>
             </ol>
 
             <div class="home-highlights">
               <p-tag severity="warn" value="Base en expansion"></p-tag>
-              <p-tag severity="info" value="Builds con nivel recomendado"></p-tag>
-              <p-tag severity="success" value="Guias para nuevos jugadores"></p-tag>
+              <p-tag severity="info" value="Builds con niveles sugeridos"></p-tag>
+              <p-tag severity="success" value="Guia clara para principiantes"></p-tag>
             </div>
 
             <div class="quick-actions">
@@ -45,7 +49,7 @@ import { ButtonModule } from 'primeng/button';
           </div>
 
           <aside class="home-side-panel">
-            <img src="/assets/Logo/logo_provisional.jpg" alt="Vista general AEGIS Wiki" />
+            <img src="/assets/Logo/logo_provisional.jpg" alt="Insignia AEGIS Wiki" />
             <div class="home-weapon-showcase">
               <img
                 src="/assets/lordsworns_straight_sword_straight_sword_weapon_elden_ring_wiki_guide_200px.png"
@@ -63,8 +67,12 @@ import { ButtonModule } from 'primeng/button';
                 <span>builds iniciales</span>
               </div>
               <div class="home-stat-card">
-                <strong>100%</strong>
-                <span>enfoque comunidad</span>
+                <strong>3</strong>
+                <span>rutas sugeridas</span>
+              </div>
+              <div class="home-stat-card">
+                <strong>24/7</strong>
+                <span>acceso a guias</span>
               </div>
             </div>
           </aside>

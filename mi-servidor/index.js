@@ -36,6 +36,20 @@ const corsOptions = {
   }
 };
 
+function hasAdminAccess(req) {
+  const role = String(req.headers['x-user-role'] || '').trim().toLowerCase();
+  return role === 'admin';
+}
+
+function ensureAdmin(req, res) {
+  if (hasAdminAccess(req)) {
+    return true;
+  }
+
+  res.status(403).json({ message: 'Acceso solo para administradores.' });
+  return false;
+}
+
 app.use(cors(corsOptions));
 app.use(express.json());
 
@@ -790,6 +804,137 @@ app.get('/armas', async (req, res) => {
   } catch (err) {
     console.error(err.message);
     res.status(500).send("Error en el servidor");
+  }
+});
+
+app.post('/armas', async (req, res) => {
+  if (!ensureAdmin(req, res)) {
+    return;
+  }
+
+  if (!databaseAvailable) {
+    return res.status(503).json({ message: 'Base de datos no disponible.' });
+  }
+
+  const { nombre, tipo_id, rareza, peso, escalado, descripcion } = req.body ?? {};
+  const safeName = String(nombre || '').trim();
+  if (!safeName) {
+    return res.status(400).json({ message: 'El nombre es obligatorio.' });
+  }
+
+  const safeRareza = Number.isFinite(Number(rareza)) ? Number(rareza) : 1;
+  const safePeso = Number.isFinite(Number(peso)) ? Number(peso) : 0;
+  const safeTipoId = Number.isFinite(Number(tipo_id)) ? Number(tipo_id) : null;
+
+  try {
+    const insert = await pool.query(
+      `
+        INSERT INTO armas (nombre, tipo_id, rareza, peso, escalado, descripcion)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING *
+      `,
+      [
+        safeName,
+        safeTipoId,
+        Math.min(Math.max(safeRareza, 1), 5),
+        Math.max(safePeso, 0),
+        String(escalado || '').trim() || null,
+        String(descripcion || '').trim() || null
+      ]
+    );
+
+    return res.status(201).json(insert.rows[0]);
+  } catch (err) {
+    console.error(err.message);
+    return res.status(500).json({ message: 'No se pudo crear el arma.' });
+  }
+});
+
+app.put('/armas/:id', async (req, res) => {
+  if (!ensureAdmin(req, res)) {
+    return;
+  }
+
+  if (!databaseAvailable) {
+    return res.status(503).json({ message: 'Base de datos no disponible.' });
+  }
+
+  const id = Number(req.params.id);
+  if (!Number.isFinite(id) || id <= 0) {
+    return res.status(400).json({ message: 'ID invalido.' });
+  }
+
+  const { nombre, tipo_id, rareza, peso, escalado, descripcion } = req.body ?? {};
+  const safeName = String(nombre || '').trim();
+  if (!safeName) {
+    return res.status(400).json({ message: 'El nombre es obligatorio.' });
+  }
+
+  const safeRareza = Number.isFinite(Number(rareza)) ? Number(rareza) : 1;
+  const safePeso = Number.isFinite(Number(peso)) ? Number(peso) : 0;
+  const safeTipoId = Number.isFinite(Number(tipo_id)) ? Number(tipo_id) : null;
+
+  try {
+    const update = await pool.query(
+      `
+        UPDATE armas
+        SET
+          nombre = $1,
+          tipo_id = $2,
+          rareza = $3,
+          peso = $4,
+          escalado = $5,
+          descripcion = $6,
+          updated_at = NOW()
+        WHERE id = $7
+        RETURNING *
+      `,
+      [
+        safeName,
+        safeTipoId,
+        Math.min(Math.max(safeRareza, 1), 5),
+        Math.max(safePeso, 0),
+        String(escalado || '').trim() || null,
+        String(descripcion || '').trim() || null,
+        id
+      ]
+    );
+
+    if (update.rowCount === 0) {
+      return res.status(404).json({ message: 'Arma no encontrada.' });
+    }
+
+    return res.json(update.rows[0]);
+  } catch (err) {
+    console.error(err.message);
+    return res.status(500).json({ message: 'No se pudo actualizar el arma.' });
+  }
+});
+
+app.delete('/armas/:id', async (req, res) => {
+  if (!ensureAdmin(req, res)) {
+    return;
+  }
+
+  if (!databaseAvailable) {
+    return res.status(503).json({ message: 'Base de datos no disponible.' });
+  }
+
+  const id = Number(req.params.id);
+  if (!Number.isFinite(id) || id <= 0) {
+    return res.status(400).json({ message: 'ID invalido.' });
+  }
+
+  try {
+    const deleted = await pool.query('DELETE FROM armas WHERE id = $1 RETURNING id', [id]);
+    if (deleted.rowCount === 0) {
+      return res.status(404).json({ message: 'Arma no encontrada.' });
+    }
+
+    return res.json({ message: 'Arma eliminada.' });
+  } catch (err) {
+    console.error(err.message);
+    return res.status(500).json({ message: 'No se pudo eliminar el arma.' });
   }
 });
 

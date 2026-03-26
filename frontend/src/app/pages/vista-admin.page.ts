@@ -1,14 +1,27 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { FormsModule } from '@angular/forms';
 import { CardModule } from 'primeng/card';
 import { TagModule } from 'primeng/tag';
 import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+
+interface ArmaAdmin {
+  id: number;
+  nombre: string;
+  tipo_id: number | null;
+  rareza: number;
+  peso: string;
+  escalado: string;
+  descripcion: string;
+}
 
 @Component({
   selector: 'app-vista-admin-page',
   standalone: true,
-  imports: [CardModule, TagModule, ButtonModule, RouterLink],
+  imports: [CardModule, TagModule, ButtonModule, RouterLink, FormsModule, InputTextModule],
   template: `
     <section class="page-section">
       <div class="section-intro">
@@ -65,12 +78,101 @@ import { AuthService } from '../services/auth.service';
           <a pButton routerLink="/personajes" icon="pi pi-users" label="Revisar perfiles" severity="contrast"></a>
         </div>
       </p-card>
+
+      <p-card header="CRUD de armas" subheader="Cambios visibles para usuarios en tiempo real">
+        @if (!isAdmin()) {
+          <p>No tienes permisos de administrador.</p>
+        } @else {
+          <div class="wiki-card-grid">
+            <p-card [subheader]="editingId() ? 'Editando arma #' + editingId() : 'Nueva arma'">
+              <ng-template pTemplate="title">Formulario</ng-template>
+
+              <div class="wiki-form-grid">
+                <label>
+                  <span>Nombre</span>
+                  <input pInputText type="text" [(ngModel)]="form.nombre" placeholder="Ej. Moonveil" />
+                </label>
+
+                <label>
+                  <span>Rareza (1-5)</span>
+                  <input pInputText type="number" min="1" max="5" [(ngModel)]="form.rareza" />
+                </label>
+
+                <label>
+                  <span>Peso</span>
+                  <input pInputText type="number" min="0" step="0.1" [(ngModel)]="form.peso" />
+                </label>
+
+                <label>
+                  <span>Escalado</span>
+                  <input pInputText type="text" [(ngModel)]="form.escalado" placeholder="Ej. DEX/INT" />
+                </label>
+
+                <label class="wiki-form-wide">
+                  <span>Descripción</span>
+                  <textarea pInputText rows="4" [(ngModel)]="form.descripcion" placeholder="Describe el arma"></textarea>
+                </label>
+              </div>
+
+              <div class="wiki-actions">
+                <button pButton type="button" icon="pi pi-check" [label]="editingId() ? 'Guardar cambios' : 'Crear arma'" (click)="saveArma()"></button>
+                <button pButton type="button" icon="pi pi-refresh" label="Limpiar" severity="secondary" (click)="resetForm()"></button>
+              </div>
+            </p-card>
+
+            <p-card subheader="Lista administrable">
+              <ng-template pTemplate="title">Armas actuales</ng-template>
+              <div class="wiki-actions">
+                <p-tag severity="contrast" [value]="armas().length + ' registradas'"></p-tag>
+                <button pButton type="button" icon="pi pi-sync" label="Recargar" severity="secondary" (click)="loadArmas()"></button>
+              </div>
+
+              @if (errorMessage()) {
+                <p>{{ errorMessage() }}</p>
+              }
+
+              <div class="wiki-list-grid">
+                @for (arma of armas(); track arma.id) {
+                  <div class="wiki-list-row">
+                    <div>
+                      <strong>{{ arma.nombre }}</strong>
+                      <small>Rareza {{ arma.rareza }} · Peso {{ arma.peso }} · {{ arma.escalado || 'Sin escalado' }}</small>
+                    </div>
+                    <div class="wiki-actions">
+                      <button pButton type="button" icon="pi pi-pencil" label="Editar" size="small" severity="info" (click)="editArma(arma)"></button>
+                      <button pButton type="button" icon="pi pi-trash" label="Eliminar" size="small" severity="danger" (click)="deleteArma(arma.id)"></button>
+                    </div>
+                  </div>
+                }
+              </div>
+            </p-card>
+          </div>
+        }
+      </p-card>
     </section>
   `
 })
 export class VistaAdminPage {
+  private readonly http = inject(HttpClient);
   private readonly authService = inject(AuthService);
   protected readonly currentUser = this.authService.currentUser;
+  protected readonly isAdmin = this.authService.isAdmin;
+  protected readonly armas = signal<ArmaAdmin[]>([]);
+  protected readonly editingId = signal<number | null>(null);
+  protected readonly errorMessage = signal('');
+  protected readonly form: {
+    nombre: string;
+    rareza: number;
+    peso: number;
+    escalado: string;
+    descripcion: string;
+  } = {
+    nombre: '',
+    rareza: 1,
+    peso: 0,
+    escalado: '',
+    descripcion: ''
+  };
   protected readonly initials = computed(() => {
     const name = this.currentUser()?.nombre?.trim() ?? '';
     if (!name) {
@@ -82,4 +184,86 @@ export class VistaAdminPage {
     const second = parts[1]?.[0] ?? '';
     return `${first}${second}`.toUpperCase() || 'AD';
   });
+
+  constructor() {
+    this.loadArmas();
+  }
+
+  protected loadArmas(): void {
+    this.http.get<ArmaAdmin[]>('/api/armas').subscribe({
+      next: (data) => {
+        this.armas.set(data ?? []);
+        this.errorMessage.set('');
+      },
+      error: () => {
+        this.errorMessage.set('No se pudo cargar el listado de armas.');
+      }
+    });
+  }
+
+  protected editArma(arma: ArmaAdmin): void {
+    this.editingId.set(arma.id);
+    this.form.nombre = arma.nombre;
+    this.form.rareza = arma.rareza;
+    this.form.peso = Number(arma.peso);
+    this.form.escalado = arma.escalado ?? '';
+    this.form.descripcion = arma.descripcion ?? '';
+  }
+
+  protected resetForm(): void {
+    this.editingId.set(null);
+    this.form.nombre = '';
+    this.form.rareza = 1;
+    this.form.peso = 0;
+    this.form.escalado = '';
+    this.form.descripcion = '';
+    this.errorMessage.set('');
+  }
+
+  protected saveArma(): void {
+    const payload = {
+      nombre: this.form.nombre,
+      rareza: this.form.rareza,
+      peso: this.form.peso,
+      escalado: this.form.escalado,
+      descripcion: this.form.descripcion,
+      tipo_id: null
+    };
+
+    if (!payload.nombre.trim()) {
+      this.errorMessage.set('El nombre es obligatorio.');
+      return;
+    }
+
+    const headers = { 'x-user-role': this.currentUser()?.role ?? '' };
+    const editing = this.editingId();
+    const request = editing
+      ? this.http.put(`/api/armas/${editing}`, payload, { headers })
+      : this.http.post('/api/armas', payload, { headers });
+
+    request.subscribe({
+      next: () => {
+        this.resetForm();
+        this.loadArmas();
+      },
+      error: (err) => {
+        this.errorMessage.set(err?.error?.message ?? 'No se pudo guardar el arma.');
+      }
+    });
+  }
+
+  protected deleteArma(id: number): void {
+    const headers = { 'x-user-role': this.currentUser()?.role ?? '' };
+    this.http.delete(`/api/armas/${id}`, { headers }).subscribe({
+      next: () => {
+        if (this.editingId() === id) {
+          this.resetForm();
+        }
+        this.loadArmas();
+      },
+      error: (err) => {
+        this.errorMessage.set(err?.error?.message ?? 'No se pudo eliminar el arma.');
+      }
+    });
+  }
 }

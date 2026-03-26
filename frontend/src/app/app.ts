@@ -92,6 +92,15 @@ export class App implements OnInit {
 
     return wikiItems.map((item) => ({ ...item, routerLink: '/login' }));
   });
+  protected readonly topSections = computed<Array<{ label: string; path: string; icon: string }>>(() => this.sections());
+  protected readonly filteredTopMenu = computed<MenuItem[]>(() => {
+    const term = this.search().trim().toLowerCase();
+    if (!term) {
+      return this.topMenu();
+    }
+
+    return this.topMenu().filter((item) => String(item.label ?? '').toLowerCase().includes(term));
+  });
   protected readonly filteredSections = computed(() => {
     const term = this.search().trim().toLowerCase();
     if (!term) {
@@ -101,14 +110,14 @@ export class App implements OnInit {
   });
   protected readonly sidebarItems = computed<MenuItem[]>(() => [
     {
-      label: 'Secciones',
-      icon: 'pi pi-compass',
+      label: 'Categorias',
+      icon: 'pi pi-sitemap',
       expanded: true,
       items: [
-        ...this.filteredSections().map((section) => ({
-        label: section.label,
-        icon: section.icon,
-        routerLink: section.path
+        ...this.filteredTopMenu().map((item) => ({
+        label: item.label,
+        icon: item.icon,
+        routerLink: item.routerLink
         })),
         ...(this.isAuthenticated()
           ? [{ label: 'Salir', icon: 'pi pi-sign-out', command: () => this.logout() }]

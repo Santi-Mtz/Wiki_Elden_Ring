@@ -45,6 +45,7 @@ export class App implements OnInit {
   protected readonly search = signal('');
   protected readonly currentUser = this.authService.currentUser;
   protected readonly isAuthenticated = this.authService.isAuthenticated;
+  protected readonly sidebarOpen = signal(false);
   protected readonly isAdmin = computed(() => this.currentUser()?.role === 'admin');
   protected readonly sections = computed<Array<{ label: string; path: string; icon: string }>>(() => {
     const items: Array<{ label: string; path: string; icon: string }> = [
@@ -143,6 +144,15 @@ export class App implements OnInit {
 
   protected logout(): void {
     this.authService.logout();
+    this.sidebarOpen.set(false);
     this.router.navigateByUrl('/login');
+  }
+
+  protected toggleSidebar(): void {
+    this.sidebarOpen.update((value) => !value);
+  }
+
+  protected closeSidebar(): void {
+    this.sidebarOpen.set(false);
   }
 }

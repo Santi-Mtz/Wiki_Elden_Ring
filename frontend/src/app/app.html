@@ -26,11 +26,28 @@
           </a>
         }
       </nav>
+
+      <button
+        pButton
+        type="button"
+        class="sidebar-toggle"
+        [label]="sidebarOpen() ? 'Cerrar panel' : 'Abrir panel'"
+        [icon]="sidebarOpen() ? 'pi pi-times' : 'pi pi-bars'"
+        (click)="toggleSidebar()"
+        [attr.aria-expanded]="sidebarOpen()"
+      ></button>
     </div>
   </header>
 
+  <div class="sidebar-overlay" [class.open]="sidebarOpen()" (click)="closeSidebar()"></div>
+
   <div class="layout">
-    <aside class="sidebar">
+    <aside class="sidebar" [class.open]="sidebarOpen()" aria-label="Panel lateral" [attr.aria-hidden]="!sidebarOpen()">
+      <div class="sidebar-head">
+        <strong>Panel de navegacion</strong>
+        <button pButton type="button" icon="pi pi-times" text rounded ariaLabel="Cerrar panel" (click)="closeSidebar()"></button>
+      </div>
+
       <p-card styleClass="panel-card" header="Sesion">
         @if (currentUser(); as user) {
           <div class="session-side">

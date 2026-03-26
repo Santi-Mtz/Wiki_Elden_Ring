@@ -30,18 +30,21 @@
 
 .topbar-shell {
 	display: grid;
-	grid-template-columns: auto auto minmax(0, 1fr);
+	grid-template-columns: auto minmax(0, 1fr);
+	grid-template-areas: 'brand nav';
 	align-items: center;
 	gap: 12px;
 }
 
 .sidebar-toggle {
+	grid-area: toggle;
 	height: 44px;
 	white-space: nowrap;
 	display: none;
 }
 
 .brand {
+	grid-area: brand;
 	display: flex;
 	align-items: center;
 	gap: 12px;
@@ -86,9 +89,12 @@
 }
 
 .main-nav {
-	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-	align-items: stretch;
+	grid-area: nav;
+	display: flex;
+	align-items: center;
+	align-content: center;
+	justify-content: flex-start;
+	flex-wrap: wrap;
 	gap: 6px;
 	padding: 10px;
 	border-radius: 16px;
@@ -102,9 +108,9 @@
 
 .nav-item {
 	display: inline-flex;
-	width: 100%;
+	flex: 0 0 auto;
 	align-items: center;
-	justify-content: center;
+	justify-content: flex-start;
 	gap: 8px;
 	padding: 10px 14px;
 	border-radius: 12px;
@@ -337,7 +343,8 @@
 	}
 
 	.topbar-shell {
-		grid-template-columns: auto minmax(0, 1fr);
+		grid-template-columns: auto minmax(0, 1fr) auto;
+		grid-template-areas: 'brand nav toggle';
 	}
 
 	.brand h1 {
@@ -349,7 +356,8 @@
 	}
 
 	.main-nav {
-		grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+		justify-content: flex-start;
+		flex-wrap: wrap;
 		width: 100%;
 	}
 
@@ -384,7 +392,10 @@
 	}
 
 	.topbar-shell {
-		grid-template-columns: auto minmax(0, 1fr);
+		grid-template-columns: minmax(0, 1fr) auto;
+		grid-template-areas:
+			'brand toggle'
+			'nav nav';
 		align-items: start;
 	}
 
@@ -406,7 +417,8 @@
 	}
 
 	.main-nav {
-		grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+		justify-content: flex-start;
+		flex-wrap: wrap;
 		padding: 6px;
 		gap: 4px;
 	}

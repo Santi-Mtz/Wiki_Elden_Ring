@@ -1,16 +1,6 @@
 <main class="page">
   <header class="topbar">
     <div class="topbar-shell">
-      <button
-        pButton
-        type="button"
-        class="sidebar-toggle"
-        [label]="sidebarOpen() ? 'Cerrar panel' : 'Abrir panel'"
-        [icon]="sidebarOpen() ? 'pi pi-times' : 'pi pi-bars'"
-        (click)="toggleSidebar()"
-        [attr.aria-expanded]="sidebarOpen()"
-      ></button>
-
       <div class="brand">
         <img src="/assets/Logo/logo_provisional.jpg" alt="AEGIS Wiki" />
         <div>
@@ -37,6 +27,16 @@
           </a>
         }
       </nav>
+
+      <button
+        pButton
+        type="button"
+        class="sidebar-toggle"
+        [label]="sidebarOpen() ? 'Cerrar panel' : 'Abrir panel'"
+        [icon]="sidebarOpen() ? 'pi pi-times' : 'pi pi-bars'"
+        (click)="toggleSidebar()"
+        [attr.aria-expanded]="sidebarOpen()"
+      ></button>
     </div>
   </header>
 

@@ -260,6 +260,18 @@ export class App implements OnInit, OnDestroy {
           clearTimeout(this.autoNavigateTimer);
           this.autoNavigateTimer = null;
         }
+
+        // Si se limpia la busqueda, quitamos filtros de URL para mostrar listas completas.
+        if (!term) {
+          const parsed = this.router.parseUrl(this.router.url);
+          const hasObjectFilters = Boolean(parsed.queryParams?.['itemId'] || parsed.queryParams?.['q'] || parsed.fragment);
+
+          if (hasObjectFilters) {
+            const cleanPath = this.router.url.split('?')[0].split('#')[0];
+            this.router.navigateByUrl(cleanPath, { replaceUrl: true });
+          }
+        }
+
         return;
       }
 

@@ -5,6 +5,7 @@ import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { Subscription } from 'rxjs';
 import { LiveUpdatesService } from '../services/live-updates.service';
+import { ActivatedRoute } from '@angular/router';
 
 interface Build {
   id: number;
@@ -39,7 +40,7 @@ interface Build {
         } @else {
           <div class="wiki-card-grid">
             @for (build of builds(); track build.id) {
-              <p-card [subheader]="build.enfoque">
+              <p-card [subheader]="build.enfoque" [attr.id]="'item-' + build.id">
                 <ng-template pTemplate="title">{{ build.nombre }}</ng-template>
                 @if (build.nivel_recomendado) {
                   <p-tag severity="warn" [value]="'Nivel recomendado: ' + build.nivel_recomendado"></p-tag>
@@ -66,6 +67,7 @@ interface Build {
 export class BuildsPage implements OnInit, OnDestroy {
   private readonly http = inject(HttpClient);
   private readonly liveUpdates = inject(LiveUpdatesService);
+  private readonly route = inject(ActivatedRoute);
   private liveSubscription?: Subscription;
   protected builds = signal<Build[]>([]);
 
@@ -84,9 +86,29 @@ export class BuildsPage implements OnInit, OnDestroy {
 
   loadBuilds() {
     this.http.get<Build[]>('/api/builds').subscribe({
-      next: (data) => this.builds.set(data),
+      next: (data) => {
+        const list = data ?? [];
+        this.builds.set(list);
+        this.focusTarget(list);
+      },
       error: (err) => console.error('Error al cargar builds:', err)
     });
+  }
+
+  private focusTarget(items: Array<{ id: number }>): void {
+    const rawId = this.route.snapshot.queryParamMap.get('itemId');
+    const targetId = Number(rawId);
+    if (!Number.isFinite(targetId) || typeof document === 'undefined') {
+      return;
+    }
+
+    if (!items.some((item) => item.id === targetId)) {
+      return;
+    }
+
+    setTimeout(() => {
+      document.getElementById(`item-${targetId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 0);
   }
 
   parseDistribution(distribution?: string): string[] {

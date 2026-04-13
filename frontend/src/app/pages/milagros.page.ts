@@ -5,6 +5,7 @@ import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { Subscription } from 'rxjs';
 import { LiveUpdatesService } from '../services/live-updates.service';
+import { ActivatedRoute } from '@angular/router';
 
 interface Milagro {
   id: number;
@@ -38,7 +39,7 @@ interface Milagro {
         } @else {
           <div class="wiki-card-grid">
             @for (milagro of milagros(); track milagro.id) {
-              <p-card [subheader]="milagro.requisitos">
+              <p-card [subheader]="milagro.requisitos" [attr.id]="'item-' + milagro.id">
                 <ng-template pTemplate="title">{{ milagro.nombre }}</ng-template>
                 <p>{{ milagro.descripcion }}</p>
                 <p><strong>Costo FP:</strong> {{ milagro.costo_fp }}</p>
@@ -53,6 +54,7 @@ interface Milagro {
 export class MilagrosPage implements OnInit, OnDestroy {
   private readonly http = inject(HttpClient);
   private readonly liveUpdates = inject(LiveUpdatesService);
+  private readonly route = inject(ActivatedRoute);
   private liveSubscription?: Subscription;
   protected milagros = signal<Milagro[]>([]);
 
@@ -71,8 +73,28 @@ export class MilagrosPage implements OnInit, OnDestroy {
 
   loadMilagros() {
     this.http.get<Milagro[]>('/api/milagros').subscribe({
-      next: (data) => this.milagros.set(data),
+      next: (data) => {
+        const list = data ?? [];
+        this.milagros.set(list);
+        this.focusTarget(list);
+      },
       error: (err) => console.error('Error al cargar milagros:', err)
     });
+  }
+
+  private focusTarget(items: Array<{ id: number }>): void {
+    const rawId = this.route.snapshot.queryParamMap.get('itemId');
+    const targetId = Number(rawId);
+    if (!Number.isFinite(targetId) || typeof document === 'undefined') {
+      return;
+    }
+
+    if (!items.some((item) => item.id === targetId)) {
+      return;
+    }
+
+    setTimeout(() => {
+      document.getElementById(`item-${targetId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 0);
   }
 }

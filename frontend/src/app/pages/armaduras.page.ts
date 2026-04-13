@@ -5,6 +5,7 @@ import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { Subscription } from 'rxjs';
 import { LiveUpdatesService } from '../services/live-updates.service';
+import { ActivatedRoute } from '@angular/router';
 
 interface Armadura {
   id: number;
@@ -40,7 +41,7 @@ interface Armadura {
         } @else {
           <div class="wiki-card-grid">
             @for (armadura of armaduras(); track armadura.id) {
-              <p-card [subheader]="armadura.categoria">
+              <p-card [subheader]="armadura.categoria" [attr.id]="'item-' + armadura.id">
                 <ng-template pTemplate="title">{{ armadura.nombre }}</ng-template>
                 <p>{{ armadura.descripcion }}</p>
                 <p><strong>Peso:</strong> {{ armadura.peso }}</p>
@@ -57,6 +58,7 @@ interface Armadura {
 export class ArmadurasPage implements OnInit, OnDestroy {
   private readonly http = inject(HttpClient);
   private readonly liveUpdates = inject(LiveUpdatesService);
+  private readonly route = inject(ActivatedRoute);
   private liveSubscription?: Subscription;
   protected armaduras = signal<Armadura[]>([]);
 
@@ -75,8 +77,28 @@ export class ArmadurasPage implements OnInit, OnDestroy {
 
   loadArmaduras() {
     this.http.get<Armadura[]>('/api/armaduras').subscribe({
-      next: (data) => this.armaduras.set(data),
+      next: (data) => {
+        const list = data ?? [];
+        this.armaduras.set(list);
+        this.focusTarget(list);
+      },
       error: (err) => console.error('Error al cargar armaduras:', err)
     });
+  }
+
+  private focusTarget(items: Array<{ id: number }>): void {
+    const rawId = this.route.snapshot.queryParamMap.get('itemId');
+    const targetId = Number(rawId);
+    if (!Number.isFinite(targetId) || typeof document === 'undefined') {
+      return;
+    }
+
+    if (!items.some((item) => item.id === targetId)) {
+      return;
+    }
+
+    setTimeout(() => {
+      document.getElementById(`item-${targetId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 0);
   }
 }

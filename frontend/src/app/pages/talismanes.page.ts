@@ -5,6 +5,7 @@ import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { Subscription } from 'rxjs';
 import { LiveUpdatesService } from '../services/live-updates.service';
+import { ActivatedRoute } from '@angular/router';
 
 interface Talisman {
   id: number;
@@ -37,7 +38,7 @@ interface Talisman {
         } @else {
           <div class="wiki-card-grid">
             @for (talisman of talismanes(); track talisman.id) {
-              <p-card [subheader]="talisman.ubicacion">
+              <p-card [subheader]="talisman.ubicacion" [attr.id]="'item-' + talisman.id">
                 <ng-template pTemplate="title">{{ talisman.nombre }}</ng-template>
                 <p>{{ talisman.efecto }}</p>
               </p-card>
@@ -51,6 +52,7 @@ interface Talisman {
 export class TalismanesPage implements OnInit, OnDestroy {
   private readonly http = inject(HttpClient);
   private readonly liveUpdates = inject(LiveUpdatesService);
+  private readonly route = inject(ActivatedRoute);
   private liveSubscription?: Subscription;
   protected talismanes = signal<Talisman[]>([]);
 
@@ -69,8 +71,28 @@ export class TalismanesPage implements OnInit, OnDestroy {
 
   loadTalismanes() {
     this.http.get<Talisman[]>('/api/talismanes').subscribe({
-      next: (data) => this.talismanes.set(data),
+      next: (data) => {
+        const list = data ?? [];
+        this.talismanes.set(list);
+        this.focusTarget(list);
+      },
       error: (err) => console.error('Error al cargar talismanes:', err)
     });
+  }
+
+  private focusTarget(items: Array<{ id: number }>): void {
+    const rawId = this.route.snapshot.queryParamMap.get('itemId');
+    const targetId = Number(rawId);
+    if (!Number.isFinite(targetId) || typeof document === 'undefined') {
+      return;
+    }
+
+    if (!items.some((item) => item.id === targetId)) {
+      return;
+    }
+
+    setTimeout(() => {
+      document.getElementById(`item-${targetId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 0);
   }
 }

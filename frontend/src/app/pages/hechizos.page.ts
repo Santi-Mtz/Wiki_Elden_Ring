@@ -5,6 +5,7 @@ import { TagModule } from 'primeng/tag';
 import { ButtonModule } from 'primeng/button';
 import { Subscription } from 'rxjs';
 import { LiveUpdatesService } from '../services/live-updates.service';
+import { ActivatedRoute } from '@angular/router';
 
 interface Hechizo {
   id: number;
@@ -38,7 +39,7 @@ interface Hechizo {
         } @else {
           <div class="wiki-card-grid">
             @for (hechizo of hechizos(); track hechizo.id) {
-              <p-card [subheader]="hechizo.requisitos">
+              <p-card [subheader]="hechizo.requisitos" [attr.id]="'item-' + hechizo.id">
                 <ng-template pTemplate="title">{{ hechizo.nombre }}</ng-template>
                 <p>{{ hechizo.descripcion }}</p>
                 <p><strong>Costo FP:</strong> {{ hechizo.costo_fp }}</p>
@@ -53,6 +54,7 @@ interface Hechizo {
 export class HechizosPage implements OnInit, OnDestroy {
   private readonly http = inject(HttpClient);
   private readonly liveUpdates = inject(LiveUpdatesService);
+  private readonly route = inject(ActivatedRoute);
   private liveSubscription?: Subscription;
   protected readonly hechizos = signal<Hechizo[]>([]);
 
@@ -71,8 +73,28 @@ export class HechizosPage implements OnInit, OnDestroy {
 
   protected loadHechizos(): void {
     this.http.get<Hechizo[]>('/api/hechizos').subscribe({
-      next: (data) => this.hechizos.set(data ?? []),
+      next: (data) => {
+        const list = data ?? [];
+        this.hechizos.set(list);
+        this.focusTarget(list);
+      },
       error: (err) => console.error('Error al cargar hechizos:', err)
     });
+  }
+
+  private focusTarget(items: Array<{ id: number }>): void {
+    const rawId = this.route.snapshot.queryParamMap.get('itemId');
+    const targetId = Number(rawId);
+    if (!Number.isFinite(targetId) || typeof document === 'undefined') {
+      return;
+    }
+
+    if (!items.some((item) => item.id === targetId)) {
+      return;
+    }
+
+    setTimeout(() => {
+      document.getElementById(`item-${targetId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 0);
   }
 }

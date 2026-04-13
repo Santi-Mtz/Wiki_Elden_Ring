@@ -5,6 +5,7 @@ import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { Subscription } from 'rxjs';
 import { LiveUpdatesService } from '../services/live-updates.service';
+import { ActivatedRoute } from '@angular/router';
 
 interface Personaje {
   id: number;
@@ -38,7 +39,7 @@ interface Personaje {
         } @else {
           <div class="wiki-card-grid">
             @for (personaje of personajes(); track personaje.id) {
-              <p-card [subheader]="personaje.zona">
+              <p-card [subheader]="personaje.zona" [attr.id]="'item-' + personaje.id">
                 <ng-template pTemplate="title">{{ personaje.nombre }}</ng-template>
                 <p>{{ personaje.descripcion }}</p>
                 <p><strong>Facción:</strong> {{ personaje.faccion }}</p>
@@ -53,6 +54,7 @@ interface Personaje {
 export class PersonajesPage implements OnInit, OnDestroy {
   private readonly http = inject(HttpClient);
   private readonly liveUpdates = inject(LiveUpdatesService);
+  private readonly route = inject(ActivatedRoute);
   private liveSubscription?: Subscription;
   protected personajes = signal<Personaje[]>([]);
 
@@ -71,8 +73,28 @@ export class PersonajesPage implements OnInit, OnDestroy {
 
   loadPersonajes() {
     this.http.get<Personaje[]>('/api/personajes').subscribe({
-      next: (data) => this.personajes.set(data),
+      next: (data) => {
+        const list = data ?? [];
+        this.personajes.set(list);
+        this.focusTarget(list);
+      },
       error: (err) => console.error('Error al cargar personajes:', err)
     });
+  }
+
+  private focusTarget(items: Array<{ id: number }>): void {
+    const rawId = this.route.snapshot.queryParamMap.get('itemId');
+    const targetId = Number(rawId);
+    if (!Number.isFinite(targetId) || typeof document === 'undefined') {
+      return;
+    }
+
+    if (!items.some((item) => item.id === targetId)) {
+      return;
+    }
+
+    setTimeout(() => {
+      document.getElementById(`item-${targetId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 0);
   }
 }

@@ -40,6 +40,13 @@ export class App implements OnInit {
   protected readonly domain = signal('localhost:4200');
   protected readonly updatedAt = signal(new Date());
   protected readonly armas = signal<Array<{ id?: number; nombre?: string; tipo?: string }>>([]);
+  protected readonly armaduras = signal<Array<{ id?: number; nombre?: string }>>([]);
+  protected readonly talismanes = signal<Array<{ id?: number; nombre?: string }>>([]);
+  protected readonly hechizos = signal<Array<{ id?: number; nombre?: string }>>([]);
+  protected readonly milagros = signal<Array<{ id?: number; nombre?: string }>>([]);
+  protected readonly clases = signal<Array<{ id?: number; nombre?: string }>>([]);
+  protected readonly builds = signal<Array<{ id?: number; nombre?: string }>>([]);
+  protected readonly personajes = signal<Array<{ id?: number; nombre?: string }>>([]);
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
   protected readonly search = signal('');
@@ -93,13 +100,36 @@ export class App implements OnInit {
     return wikiItems.map((item) => ({ ...item, routerLink: '/login' }));
   });
   protected readonly topSections = computed<Array<{ label: string; path: string; icon: string }>>(() => this.sections());
-  protected readonly filteredTopMenu = computed<MenuItem[]>(() => {
+  protected readonly filteredArmas = computed(() => {
     const term = this.search().trim().toLowerCase();
+    const allArmas = this.armas();
+
     if (!term) {
-      return this.topMenu();
+      return allArmas;
     }
 
-    return this.topMenu().filter((item) => String(item.label ?? '').toLowerCase().includes(term));
+    return allArmas.filter((arma) => String(arma.nombre ?? '').toLowerCase().includes(term));
+  });
+  protected readonly filteredWikiObjects = computed(() => {
+    const term = this.search().trim().toLowerCase();
+
+    const filterByTerm = (items: Array<{ id?: number; nombre?: string }>) => {
+      if (!term) {
+        return [];
+      }
+      return items.filter((item) => String(item.nombre ?? '').toLowerCase().includes(term));
+    };
+
+    return {
+      clases: filterByTerm(this.clases()),
+      armas: filterByTerm(this.armas()),
+      armaduras: filterByTerm(this.armaduras()),
+      talismanes: filterByTerm(this.talismanes()),
+      hechizos: filterByTerm(this.hechizos()),
+      milagros: filterByTerm(this.milagros()),
+      builds: filterByTerm(this.builds()),
+      personajes: filterByTerm(this.personajes())
+    };
   });
   protected readonly filteredSections = computed(() => {
     const term = this.search().trim().toLowerCase();
@@ -108,20 +138,75 @@ export class App implements OnInit {
     }
     return this.sections().filter((item) => item.label.toLowerCase().includes(term));
   });
-  protected readonly sidebarItems = computed<MenuItem[]>(() => [
-    {
-      label: 'Categorias',
-      icon: 'pi pi-sitemap',
-      expanded: true,
-      items: [
-        ...this.filteredTopMenu().map((item) => ({
-        label: item.label,
-        icon: item.icon,
-        routerLink: item.routerLink
-        }))
-      ]
-    }
-  ]);
+  protected readonly sidebarItems = computed<MenuItem[]>(() => {
+    const term = this.search().trim().toLowerCase();
+    const categories = this.topMenu();
+    const objectsByCategory = this.filteredWikiObjects();
+
+    const keyByLabel: Record<string, keyof typeof objectsByCategory> = {
+      clases: 'clases',
+      armas: 'armas',
+      armaduras: 'armaduras',
+      talismanes: 'talismanes',
+      hechizos: 'hechizos',
+      milagros: 'milagros',
+      builds: 'builds',
+      personajes: 'personajes'
+    };
+
+    const categoryItems: MenuItem[] = categories
+      .map((item): MenuItem | null => {
+        const labelKey = String(item.label ?? '').toLowerCase();
+        const categoryKey = keyByLabel[labelKey];
+
+        if (!term) {
+          return {
+            label: item.label,
+            icon: item.icon,
+            routerLink: item.routerLink
+          };
+        }
+
+        if (!categoryKey) {
+          return null;
+        }
+
+        const matches = objectsByCategory[categoryKey];
+        const children: MenuItem[] = matches.map((entry) => ({
+          label: String(entry.nombre ?? 'Sin nombre'),
+          icon: 'pi pi-angle-right',
+          routerLink: item.routerLink,
+          queryParams: {
+            itemId: entry.id ?? null,
+            q: String(entry.nombre ?? '')
+          },
+          fragment: entry.id ? `item-${entry.id}` : undefined
+        }));
+
+        if (children.length === 0) {
+          return null;
+        }
+
+        const itemWithChildren: MenuItem = {
+          label: item.label,
+          icon: item.icon,
+          routerLink: item.routerLink,
+          items: children
+        };
+
+        return itemWithChildren;
+      })
+      .filter((item): item is MenuItem => item !== null);
+
+    return [
+      {
+        label: 'Categorias',
+        icon: 'pi pi-sitemap',
+        expanded: true,
+        items: categoryItems
+      }
+    ];
+  });
   protected readonly stats = computed(() => ({
     sections: this.sections().length,
     weapons: this.armas().length,
@@ -146,6 +231,28 @@ export class App implements OnInit {
           this.loading.set(false);
         }
       });
+
+    this.loadWikiCollection('/api/armaduras', this.armaduras);
+    this.loadWikiCollection('/api/talismanes', this.talismanes);
+    this.loadWikiCollection('/api/hechizos', this.hechizos);
+    this.loadWikiCollection('/api/milagros', this.milagros);
+    this.loadWikiCollection('/api/clases', this.clases);
+    this.loadWikiCollection('/api/builds', this.builds);
+    this.loadWikiCollection('/api/personajes', this.personajes);
+  }
+
+  private loadWikiCollection(
+    endpoint: string,
+    target: ReturnType<typeof signal<Array<{ id?: number; nombre?: string }>>>
+  ): void {
+    this.http.get<Array<{ id?: number; nombre?: string }>>(endpoint).subscribe({
+      next: (data) => {
+        target.set(data ?? []);
+      },
+      error: () => {
+        target.set([]);
+      }
+    });
   }
 
   protected logout(): void {

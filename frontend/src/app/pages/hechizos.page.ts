@@ -56,10 +56,13 @@ export class HechizosPage implements OnInit, OnDestroy {
   private readonly liveUpdates = inject(LiveUpdatesService);
   private readonly route = inject(ActivatedRoute);
   private liveSubscription?: Subscription;
+  private routeSubscription?: Subscription;
   protected readonly hechizos = signal<Hechizo[]>([]);
 
   ngOnInit(): void {
-    this.loadHechizos();
+    this.routeSubscription = this.route.queryParamMap.subscribe(() => {
+      this.loadHechizos();
+    });
     this.liveSubscription = this.liveUpdates.watchWikiUpdates().subscribe((event) => {
       if (event.type === 'wiki-update') {
         this.loadHechizos();
@@ -69,14 +72,19 @@ export class HechizosPage implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.liveSubscription?.unsubscribe();
+    this.routeSubscription?.unsubscribe();
   }
 
   protected loadHechizos(): void {
     this.http.get<Hechizo[]>('/api/hechizos').subscribe({
       next: (data) => {
         const list = data ?? [];
-        this.hechizos.set(list);
-        this.focusTarget(list);
+        const rawId = this.route.snapshot.queryParamMap.get('itemId');
+        const targetId = Number(rawId);
+        const filtered = Number.isFinite(targetId) ? list.filter((item) => item.id === targetId) : list;
+
+        this.hechizos.set(filtered);
+        this.focusTarget(filtered);
       },
       error: (err) => console.error('Error al cargar hechizos:', err)
     });

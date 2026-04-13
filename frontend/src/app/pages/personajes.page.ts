@@ -56,10 +56,13 @@ export class PersonajesPage implements OnInit, OnDestroy {
   private readonly liveUpdates = inject(LiveUpdatesService);
   private readonly route = inject(ActivatedRoute);
   private liveSubscription?: Subscription;
+  private routeSubscription?: Subscription;
   protected personajes = signal<Personaje[]>([]);
 
   ngOnInit() {
-    this.loadPersonajes();
+    this.routeSubscription = this.route.queryParamMap.subscribe(() => {
+      this.loadPersonajes();
+    });
     this.liveSubscription = this.liveUpdates.watchWikiUpdates().subscribe((event) => {
       if (event.type === 'wiki-update') {
         this.loadPersonajes();
@@ -69,14 +72,19 @@ export class PersonajesPage implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.liveSubscription?.unsubscribe();
+    this.routeSubscription?.unsubscribe();
   }
 
   loadPersonajes() {
     this.http.get<Personaje[]>('/api/personajes').subscribe({
       next: (data) => {
         const list = data ?? [];
-        this.personajes.set(list);
-        this.focusTarget(list);
+        const rawId = this.route.snapshot.queryParamMap.get('itemId');
+        const targetId = Number(rawId);
+        const filtered = Number.isFinite(targetId) ? list.filter((item) => item.id === targetId) : list;
+
+        this.personajes.set(filtered);
+        this.focusTarget(filtered);
       },
       error: (err) => console.error('Error al cargar personajes:', err)
     });

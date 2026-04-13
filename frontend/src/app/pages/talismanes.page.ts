@@ -54,10 +54,13 @@ export class TalismanesPage implements OnInit, OnDestroy {
   private readonly liveUpdates = inject(LiveUpdatesService);
   private readonly route = inject(ActivatedRoute);
   private liveSubscription?: Subscription;
+  private routeSubscription?: Subscription;
   protected talismanes = signal<Talisman[]>([]);
 
   ngOnInit() {
-    this.loadTalismanes();
+    this.routeSubscription = this.route.queryParamMap.subscribe(() => {
+      this.loadTalismanes();
+    });
     this.liveSubscription = this.liveUpdates.watchWikiUpdates().subscribe((event) => {
       if (event.type === 'wiki-update') {
         this.loadTalismanes();
@@ -67,14 +70,19 @@ export class TalismanesPage implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.liveSubscription?.unsubscribe();
+    this.routeSubscription?.unsubscribe();
   }
 
   loadTalismanes() {
     this.http.get<Talisman[]>('/api/talismanes').subscribe({
       next: (data) => {
         const list = data ?? [];
-        this.talismanes.set(list);
-        this.focusTarget(list);
+        const rawId = this.route.snapshot.queryParamMap.get('itemId');
+        const targetId = Number(rawId);
+        const filtered = Number.isFinite(targetId) ? list.filter((item) => item.id === targetId) : list;
+
+        this.talismanes.set(filtered);
+        this.focusTarget(filtered);
       },
       error: (err) => console.error('Error al cargar talismanes:', err)
     });

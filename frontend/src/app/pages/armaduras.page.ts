@@ -60,10 +60,13 @@ export class ArmadurasPage implements OnInit, OnDestroy {
   private readonly liveUpdates = inject(LiveUpdatesService);
   private readonly route = inject(ActivatedRoute);
   private liveSubscription?: Subscription;
+  private routeSubscription?: Subscription;
   protected armaduras = signal<Armadura[]>([]);
 
   ngOnInit() {
-    this.loadArmaduras();
+    this.routeSubscription = this.route.queryParamMap.subscribe(() => {
+      this.loadArmaduras();
+    });
     this.liveSubscription = this.liveUpdates.watchWikiUpdates().subscribe((event) => {
       if (event.type === 'wiki-update') {
         this.loadArmaduras();
@@ -73,14 +76,19 @@ export class ArmadurasPage implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.liveSubscription?.unsubscribe();
+    this.routeSubscription?.unsubscribe();
   }
 
   loadArmaduras() {
     this.http.get<Armadura[]>('/api/armaduras').subscribe({
       next: (data) => {
         const list = data ?? [];
-        this.armaduras.set(list);
-        this.focusTarget(list);
+        const rawId = this.route.snapshot.queryParamMap.get('itemId');
+        const targetId = Number(rawId);
+        const filtered = Number.isFinite(targetId) ? list.filter((item) => item.id === targetId) : list;
+
+        this.armaduras.set(filtered);
+        this.focusTarget(filtered);
       },
       error: (err) => console.error('Error al cargar armaduras:', err)
     });

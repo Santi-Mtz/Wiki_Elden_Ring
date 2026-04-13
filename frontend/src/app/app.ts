@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { DatePipe } from '@angular/common';
@@ -32,10 +32,12 @@ import { AuthService } from './services/auth.service';
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
-export class App implements OnInit {
+export class App implements OnInit, OnDestroy {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
   private readonly authService = inject(AuthService);
+  private autoNavigateTimer: ReturnType<typeof setTimeout> | null = null;
+  private lastAutoSearchKey = '';
 
   protected readonly domain = signal('localhost:4200');
   protected readonly updatedAt = signal(new Date());
@@ -131,6 +133,40 @@ export class App implements OnInit {
       personajes: filterByTerm(this.personajes())
     };
   });
+  protected readonly firstSearchHit = computed(() => {
+    const term = this.search().trim();
+    if (!term || !this.isAuthenticated()) {
+      return null;
+    }
+
+    const objectsByCategory = this.filteredWikiObjects();
+    const orderedCategories: Array<{
+      key: keyof typeof objectsByCategory;
+      route: string;
+    }> = [
+      { key: 'clases', route: '/clases' },
+      { key: 'armas', route: '/armas' },
+      { key: 'armaduras', route: '/armaduras' },
+      { key: 'talismanes', route: '/talismanes' },
+      { key: 'hechizos', route: '/hechizos' },
+      { key: 'milagros', route: '/milagros' },
+      { key: 'builds', route: '/builds' },
+      { key: 'personajes', route: '/personajes' }
+    ];
+
+    for (const category of orderedCategories) {
+      const match = objectsByCategory[category.key][0];
+      if (match?.id) {
+        return {
+          route: category.route,
+          itemId: match.id,
+          nombre: String(match.nombre ?? '')
+        };
+      }
+    }
+
+    return null;
+  });
   protected readonly filteredSections = computed(() => {
     const term = this.search().trim().toLowerCase();
     if (!term) {
@@ -213,6 +249,42 @@ export class App implements OnInit {
     pages: this.topMenu().length + this.sections().length
   }));
 
+  constructor() {
+    effect(() => {
+      const term = this.search().trim().toLowerCase();
+      const hit = this.firstSearchHit();
+
+      if (!term || !hit) {
+        this.lastAutoSearchKey = '';
+        if (this.autoNavigateTimer) {
+          clearTimeout(this.autoNavigateTimer);
+          this.autoNavigateTimer = null;
+        }
+        return;
+      }
+
+      const key = `${hit.route}:${hit.itemId}:${term}`;
+      if (key === this.lastAutoSearchKey) {
+        return;
+      }
+
+      if (this.autoNavigateTimer) {
+        clearTimeout(this.autoNavigateTimer);
+      }
+
+      this.autoNavigateTimer = setTimeout(() => {
+        this.router.navigate([hit.route], {
+          queryParams: {
+            itemId: hit.itemId,
+            q: hit.nombre
+          },
+          fragment: `item-${hit.itemId}`
+        });
+        this.lastAutoSearchKey = key;
+      }, 180);
+    });
+  }
+
   ngOnInit(): void {
     const host = globalThis.window?.location?.host;
     if (host) {
@@ -239,6 +311,13 @@ export class App implements OnInit {
     this.loadWikiCollection('/api/clases', this.clases);
     this.loadWikiCollection('/api/builds', this.builds);
     this.loadWikiCollection('/api/personajes', this.personajes);
+  }
+
+  ngOnDestroy(): void {
+    if (this.autoNavigateTimer) {
+      clearTimeout(this.autoNavigateTimer);
+      this.autoNavigateTimer = null;
+    }
   }
 
   private loadWikiCollection(

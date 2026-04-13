@@ -5,6 +5,7 @@ import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { Subscription } from 'rxjs';
 import { LiveUpdatesService } from '../services/live-updates.service';
+import { ActivatedRoute } from '@angular/router';
 
 interface Clase {
   id: number;
@@ -46,7 +47,7 @@ interface Clase {
         } @else {
           <div class="wiki-card-grid">
             @for (clase of clases(); track clase.id) {
-              <p-card [subheader]="clase.enfoque">
+              <p-card [subheader]="clase.enfoque" [attr.id]="'item-' + clase.id">
                 <ng-template pTemplate="title">{{ clase.nombre }}</ng-template>
                 <p>{{ clase.descripcion }}</p>
                 <p><strong>VIG:</strong> {{ clase.vigor }} · <strong>MND:</strong> {{ clase.mente }} · <strong>END:</strong> {{ clase.resistencia }}</p>
@@ -63,6 +64,7 @@ interface Clase {
 export class ClasesPage implements OnInit, OnDestroy {
   private readonly http = inject(HttpClient);
   private readonly liveUpdates = inject(LiveUpdatesService);
+  private readonly route = inject(ActivatedRoute);
   private liveSubscription?: Subscription;
   protected readonly clases = signal<Clase[]>([]);
 
@@ -81,8 +83,28 @@ export class ClasesPage implements OnInit, OnDestroy {
 
   protected loadClases(): void {
     this.http.get<Clase[]>('/api/clases').subscribe({
-      next: (data) => this.clases.set(data ?? []),
+      next: (data) => {
+        const list = data ?? [];
+        this.clases.set(list);
+        this.focusTarget(list);
+      },
       error: (err) => console.error('Error al cargar clases:', err)
     });
+  }
+
+  private focusTarget(items: Array<{ id: number }>): void {
+    const rawId = this.route.snapshot.queryParamMap.get('itemId');
+    const targetId = Number(rawId);
+    if (!Number.isFinite(targetId) || typeof document === 'undefined') {
+      return;
+    }
+
+    if (!items.some((item) => item.id === targetId)) {
+      return;
+    }
+
+    setTimeout(() => {
+      document.getElementById(`item-${targetId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 0);
   }
 }

@@ -5,6 +5,7 @@ import { TagModule } from 'primeng/tag';
 import { ButtonModule } from 'primeng/button';
 import { Subscription } from 'rxjs';
 import { LiveUpdatesService } from '../services/live-updates.service';
+import { ActivatedRoute } from '@angular/router';
 
 interface Arma {
   id: number;
@@ -40,7 +41,7 @@ interface Arma {
         } @else {
           <div class="wiki-card-grid">
             @for (arma of armas(); track arma.id) {
-              <p-card [subheader]="arma.escalado">
+              <p-card [subheader]="arma.escalado" [attr.id]="'item-' + arma.id">
                 <ng-template pTemplate="title">{{ arma.nombre }}</ng-template>
                 <div class="weapon-card-media">
                   <img [src]="getWeaponImage(arma)" [alt]="arma.nombre" />
@@ -60,6 +61,7 @@ interface Arma {
 export class ArmasPage implements OnInit, OnDestroy {
   private readonly http = inject(HttpClient);
   private readonly liveUpdates = inject(LiveUpdatesService);
+  private readonly route = inject(ActivatedRoute);
   private liveSubscription?: Subscription;
   protected armas = signal<Arma[]>([]);
 
@@ -89,9 +91,26 @@ export class ArmasPage implements OnInit, OnDestroy {
         });
 
         this.armas.set(sorted);
+        this.focusTarget(sorted);
       },
       error: (err) => console.error('Error al cargar armas:', err)
     });
+  }
+
+  private focusTarget(items: Array<{ id: number }>): void {
+    const rawId = this.route.snapshot.queryParamMap.get('itemId');
+    const targetId = Number(rawId);
+    if (!Number.isFinite(targetId) || typeof document === 'undefined') {
+      return;
+    }
+
+    if (!items.some((item) => item.id === targetId)) {
+      return;
+    }
+
+    setTimeout(() => {
+      document.getElementById(`item-${targetId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 0);
   }
 
   getSeverity(rareza: number): 'success' | 'info' | 'warn' | 'danger' {

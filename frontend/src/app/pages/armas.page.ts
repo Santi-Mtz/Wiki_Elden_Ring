@@ -95,8 +95,9 @@ export class ArmasPage implements OnInit, OnDestroy {
         });
 
         const rawId = this.route.snapshot.queryParamMap.get('itemId');
-        const targetId = Number(rawId);
-        const filtered = Number.isFinite(targetId) ? sorted.filter((item) => item.id === targetId) : sorted;
+        const targetId = rawId ? Number(rawId) : NaN;
+        const shouldFilterById = rawId !== null && Number.isFinite(targetId) && targetId > 0;
+        const filtered = shouldFilterById ? sorted.filter((item) => item.id === targetId) : sorted;
 
         this.armas.set(filtered);
         this.focusTarget(filtered);
@@ -107,8 +108,8 @@ export class ArmasPage implements OnInit, OnDestroy {
 
   private focusTarget(items: Array<{ id: number }>): void {
     const rawId = this.route.snapshot.queryParamMap.get('itemId');
-    const targetId = Number(rawId);
-    if (!Number.isFinite(targetId) || typeof document === 'undefined') {
+    const targetId = rawId ? Number(rawId) : NaN;
+    if (rawId === null || !Number.isFinite(targetId) || targetId <= 0 || typeof document === 'undefined') {
       return;
     }
 

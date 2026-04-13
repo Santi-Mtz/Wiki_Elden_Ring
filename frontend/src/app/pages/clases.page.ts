@@ -90,8 +90,9 @@ export class ClasesPage implements OnInit, OnDestroy {
       next: (data) => {
         const list = data ?? [];
         const rawId = this.route.snapshot.queryParamMap.get('itemId');
-        const targetId = Number(rawId);
-        const filtered = Number.isFinite(targetId) ? list.filter((item) => item.id === targetId) : list;
+        const targetId = rawId ? Number(rawId) : NaN;
+        const shouldFilterById = rawId !== null && Number.isFinite(targetId) && targetId > 0;
+        const filtered = shouldFilterById ? list.filter((item) => item.id === targetId) : list;
 
         this.clases.set(filtered);
         this.focusTarget(filtered);
@@ -102,8 +103,8 @@ export class ClasesPage implements OnInit, OnDestroy {
 
   private focusTarget(items: Array<{ id: number }>): void {
     const rawId = this.route.snapshot.queryParamMap.get('itemId');
-    const targetId = Number(rawId);
-    if (!Number.isFinite(targetId) || typeof document === 'undefined') {
+    const targetId = rawId ? Number(rawId) : NaN;
+    if (rawId === null || !Number.isFinite(targetId) || targetId <= 0 || typeof document === 'undefined') {
       return;
     }
 

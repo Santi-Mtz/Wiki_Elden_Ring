@@ -66,10 +66,13 @@ export class ClasesPage implements OnInit, OnDestroy {
   private readonly liveUpdates = inject(LiveUpdatesService);
   private readonly route = inject(ActivatedRoute);
   private liveSubscription?: Subscription;
+  private routeSubscription?: Subscription;
   protected readonly clases = signal<Clase[]>([]);
 
   ngOnInit(): void {
-    this.loadClases();
+    this.routeSubscription = this.route.queryParamMap.subscribe(() => {
+      this.loadClases();
+    });
     this.liveSubscription = this.liveUpdates.watchWikiUpdates().subscribe((event) => {
       if (event.type === 'wiki-update') {
         this.loadClases();
@@ -79,14 +82,19 @@ export class ClasesPage implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.liveSubscription?.unsubscribe();
+    this.routeSubscription?.unsubscribe();
   }
 
   protected loadClases(): void {
     this.http.get<Clase[]>('/api/clases').subscribe({
       next: (data) => {
         const list = data ?? [];
-        this.clases.set(list);
-        this.focusTarget(list);
+        const rawId = this.route.snapshot.queryParamMap.get('itemId');
+        const targetId = Number(rawId);
+        const filtered = Number.isFinite(targetId) ? list.filter((item) => item.id === targetId) : list;
+
+        this.clases.set(filtered);
+        this.focusTarget(filtered);
       },
       error: (err) => console.error('Error al cargar clases:', err)
     });

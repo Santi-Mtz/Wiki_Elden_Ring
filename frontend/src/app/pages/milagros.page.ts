@@ -56,10 +56,13 @@ export class MilagrosPage implements OnInit, OnDestroy {
   private readonly liveUpdates = inject(LiveUpdatesService);
   private readonly route = inject(ActivatedRoute);
   private liveSubscription?: Subscription;
+  private routeSubscription?: Subscription;
   protected milagros = signal<Milagro[]>([]);
 
   ngOnInit() {
-    this.loadMilagros();
+    this.routeSubscription = this.route.queryParamMap.subscribe(() => {
+      this.loadMilagros();
+    });
     this.liveSubscription = this.liveUpdates.watchWikiUpdates().subscribe((event) => {
       if (event.type === 'wiki-update') {
         this.loadMilagros();
@@ -69,14 +72,19 @@ export class MilagrosPage implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.liveSubscription?.unsubscribe();
+    this.routeSubscription?.unsubscribe();
   }
 
   loadMilagros() {
     this.http.get<Milagro[]>('/api/milagros').subscribe({
       next: (data) => {
         const list = data ?? [];
-        this.milagros.set(list);
-        this.focusTarget(list);
+        const rawId = this.route.snapshot.queryParamMap.get('itemId');
+        const targetId = Number(rawId);
+        const filtered = Number.isFinite(targetId) ? list.filter((item) => item.id === targetId) : list;
+
+        this.milagros.set(filtered);
+        this.focusTarget(filtered);
       },
       error: (err) => console.error('Error al cargar milagros:', err)
     });

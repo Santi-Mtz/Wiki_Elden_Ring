@@ -63,10 +63,13 @@ export class ArmasPage implements OnInit, OnDestroy {
   private readonly liveUpdates = inject(LiveUpdatesService);
   private readonly route = inject(ActivatedRoute);
   private liveSubscription?: Subscription;
+  private routeSubscription?: Subscription;
   protected armas = signal<Arma[]>([]);
 
   ngOnInit() {
-    this.loadArmas();
+    this.routeSubscription = this.route.queryParamMap.subscribe(() => {
+      this.loadArmas();
+    });
     this.liveSubscription = this.liveUpdates.watchWikiUpdates().subscribe((event) => {
       if (event.type === 'wiki-update') {
         this.loadArmas();
@@ -76,6 +79,7 @@ export class ArmasPage implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.liveSubscription?.unsubscribe();
+    this.routeSubscription?.unsubscribe();
   }
 
   loadArmas() {
@@ -90,8 +94,12 @@ export class ArmasPage implements OnInit, OnDestroy {
           return a.nombre.localeCompare(b.nombre);
         });
 
-        this.armas.set(sorted);
-        this.focusTarget(sorted);
+        const rawId = this.route.snapshot.queryParamMap.get('itemId');
+        const targetId = Number(rawId);
+        const filtered = Number.isFinite(targetId) ? sorted.filter((item) => item.id === targetId) : sorted;
+
+        this.armas.set(filtered);
+        this.focusTarget(filtered);
       },
       error: (err) => console.error('Error al cargar armas:', err)
     });

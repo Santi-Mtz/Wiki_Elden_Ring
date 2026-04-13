@@ -69,10 +69,13 @@ export class BuildsPage implements OnInit, OnDestroy {
   private readonly liveUpdates = inject(LiveUpdatesService);
   private readonly route = inject(ActivatedRoute);
   private liveSubscription?: Subscription;
+  private routeSubscription?: Subscription;
   protected builds = signal<Build[]>([]);
 
   ngOnInit() {
-    this.loadBuilds();
+    this.routeSubscription = this.route.queryParamMap.subscribe(() => {
+      this.loadBuilds();
+    });
     this.liveSubscription = this.liveUpdates.watchWikiUpdates().subscribe((event) => {
       if (event.type === 'wiki-update') {
         this.loadBuilds();
@@ -82,14 +85,19 @@ export class BuildsPage implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.liveSubscription?.unsubscribe();
+    this.routeSubscription?.unsubscribe();
   }
 
   loadBuilds() {
     this.http.get<Build[]>('/api/builds').subscribe({
       next: (data) => {
         const list = data ?? [];
-        this.builds.set(list);
-        this.focusTarget(list);
+        const rawId = this.route.snapshot.queryParamMap.get('itemId');
+        const targetId = Number(rawId);
+        const filtered = Number.isFinite(targetId) ? list.filter((item) => item.id === targetId) : list;
+
+        this.builds.set(filtered);
+        this.focusTarget(filtered);
       },
       error: (err) => console.error('Error al cargar builds:', err)
     });

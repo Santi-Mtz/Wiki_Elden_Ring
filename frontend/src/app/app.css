@@ -510,3 +510,154 @@
 		text-align: center;
 	}
 }
+
+/* ==========================================================================
+   Estilos de Navegacion Dropdown y Temas Estacionales (Actualizacion de Temporada)
+   ========================================================================== */
+
+/* Dropdown Wrapper */
+.nav-dropdown-wrapper {
+	position: relative;
+	display: inline-block;
+}
+
+/* Dropdown Arrow Indicator */
+.dropdown-arrow {
+	font-size: 0.75rem !important;
+	transition: transform 0.25s ease;
+	margin-left: 4px;
+	color: #caa551 !important; /* Estilo dorado base */
+}
+.dropdown-arrow.rotated {
+	transform: rotate(180deg);
+}
+
+/* Dropdown Menu Container (Glassmorphism & Gold Theme) */
+.nav-dropdown-menu {
+	position: absolute;
+	top: calc(100% + 8px);
+	left: 0;
+	z-index: 999;
+	display: grid;
+	gap: 4px;
+	min-width: 220px;
+	padding: 8px;
+	border-radius: 12px;
+	border: 1px solid rgba(202, 165, 81, 0.25);
+	background: rgba(18, 25, 35, 0.95);
+	backdrop-filter: blur(8px);
+	box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5), 0 0 15px rgba(202, 165, 81, 0.1);
+	animation: slideDownFade 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Dropdown Item Styles */
+.dropdown-item {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 10px 12px;
+	border-radius: 8px;
+	color: #dce6f3;
+	text-decoration: none;
+	font-size: 0.94rem;
+	font-weight: 500;
+	transition: all 0.2s ease;
+	border: 1px solid transparent;
+}
+.dropdown-item i {
+	font-size: 0.9rem;
+	color: #caa551;
+}
+.dropdown-item:hover {
+	background: rgba(202, 165, 81, 0.12);
+	color: #ffffff;
+	border-color: rgba(202, 165, 81, 0.3);
+	transform: translateX(4px);
+}
+
+/* Keyframe for Dropdown Animation */
+@keyframes slideDownFade {
+	from {
+		opacity: 0;
+		transform: translateY(-8px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+/* ==========================================================================
+   Estacionales Calendario: Temas Especiales
+   ========================================================================== */
+
+/* 1. Temporada de la Gracia Dorada (Golden Grace Season - Verano) */
+.theme-golden-grace .topbar {
+	background: linear-gradient(135deg, #181d18 0%, #151e29 60%, #201a0e 100%) !important;
+	border-color: #5d4f29 !important;
+	box-shadow: 0 14px 34px rgba(0, 0, 0, 0.36), 0 0 25px rgba(202, 165, 81, 0.15) !important;
+}
+.theme-golden-grace .brand h1 {
+	color: #ffd97d;
+	text-shadow: 0 0 10px rgba(254, 217, 125, 0.4);
+}
+.theme-golden-grace .brand img {
+	border-color: #ffd97d !important;
+	box-shadow: 0 0 8px rgba(254, 217, 125, 0.3);
+}
+
+/* 2. Temporada del Fuego de la Zarza (Shadow Bramble Season - Otono) */
+.theme-shadow-bramble .topbar {
+	background: linear-gradient(135deg, #1f1010 0%, #11151c 60%, #1c0e0e 100%) !important;
+	border-color: #5d2929 !important;
+	box-shadow: 0 14px 34px rgba(0, 0, 0, 0.36), 0 0 25px rgba(220, 50, 50, 0.15) !important;
+}
+.theme-shadow-bramble .brand h1 {
+	color: #ff7d7d;
+	text-shadow: 0 0 10px rgba(255, 125, 125, 0.4);
+}
+.theme-shadow-bramble .brand img {
+	border-color: #ff7d7d !important;
+	box-shadow: 0 0 8px rgba(255, 125, 125, 0.3);
+}
+.theme-shadow-bramble .dropdown-arrow,
+.theme-shadow-bramble .nav-dropdown-menu,
+.theme-shadow-bramble .dropdown-item i {
+	color: #ff7d7d !important;
+}
+.theme-shadow-bramble .nav-dropdown-menu {
+	border-color: rgba(255, 125, 125, 0.25);
+	box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5), 0 0 15px rgba(255, 125, 125, 0.1);
+}
+.theme-shadow-bramble .dropdown-item:hover {
+	background: rgba(255, 125, 125, 0.12);
+	border-color: rgba(255, 125, 125, 0.3);
+}
+
+/* 3. Temporada de la Helada del Gigante (Frost Glintstone Season - Invierno) */
+.theme-frost-glintstone .topbar {
+	background: linear-gradient(135deg, #101924 0%, #0d121c 60%, #0e1c27 100%) !important;
+	border-color: #294e5d !important;
+	box-shadow: 0 14px 34px rgba(0, 0, 0, 0.36), 0 0 25px rgba(81, 165, 202, 0.15) !important;
+}
+.theme-frost-glintstone .brand h1 {
+	color: #7de1ff;
+	text-shadow: 0 0 10px rgba(125, 225, 255, 0.4);
+}
+.theme-frost-glintstone .brand img {
+	border-color: #7de1ff !important;
+	box-shadow: 0 0 8px rgba(125, 225, 255, 0.3);
+}
+.theme-frost-glintstone .dropdown-arrow,
+.theme-frost-glintstone .nav-dropdown-menu,
+.theme-frost-glintstone .dropdown-item i {
+	color: #7de1ff !important;
+}
+.theme-frost-glintstone .nav-dropdown-menu {
+	border-color: rgba(125, 225, 255, 0.25);
+	box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5), 0 0 15px rgba(125, 225, 255, 0.1);
+}
+.theme-frost-glintstone .dropdown-item:hover {
+	background: rgba(125, 225, 255, 0.12);
+	border-color: rgba(125, 225, 255, 0.3);
+}

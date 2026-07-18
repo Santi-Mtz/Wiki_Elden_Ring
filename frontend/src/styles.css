@@ -630,3 +630,70 @@ body {
 		grid-template-columns: 1fr;
 	}
 }
+
+/* ==========================================================================
+   Destacado mediante Puntero: Brillo Spotlight Estacional
+   ========================================================================== */
+
+.seasonal-highlight {
+	position: relative !important;
+	overflow: hidden !important;
+	transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1),
+	            border-color 0.3s ease,
+	            box-shadow 0.3s ease !important;
+}
+
+/* Spotlight overlay */
+.seasonal-highlight::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: radial-gradient(
+		80px circle at var(--mouse-x, 0px) var(--mouse-y, 0px),
+		rgba(202, 165, 81, 0.15),
+		transparent 80%
+	);
+	opacity: 0;
+	transition: opacity 0.3s ease;
+	pointer-events: none;
+	z-index: 10;
+}
+
+/* Active Highlight (Hover) */
+.seasonal-highlight-active {
+	transform: translateY(-2px) scale(1.015);
+	border-color: #caa551 !important;
+	box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4), 0 0 15px rgba(202, 165, 81, 0.25) !important;
+}
+
+.seasonal-highlight-active::before {
+	opacity: 1;
+}
+
+/* Adaptacion del resplandor segun temas estacionales */
+.theme-shadow-bramble .seasonal-highlight::before {
+	background: radial-gradient(
+		80px circle at var(--mouse-x, 0px) var(--mouse-y, 0px),
+		rgba(255, 125, 125, 0.15),
+		transparent 80%
+	);
+}
+.theme-shadow-bramble .seasonal-highlight-active {
+	border-color: #ff7d7d !important;
+	box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4), 0 0 15px rgba(255, 125, 125, 0.25) !important;
+}
+
+.theme-frost-glintstone .seasonal-highlight::before {
+	background: radial-gradient(
+		80px circle at var(--mouse-x, 0px) var(--mouse-y, 0px),
+		rgba(125, 225, 255, 0.15),
+		transparent 80%
+	);
+}
+.theme-frost-glintstone .seasonal-highlight-active {
+	border-color: #7de1ff !important;
+	box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4), 0 0 15px rgba(125, 225, 255, 0.25) !important;
+}

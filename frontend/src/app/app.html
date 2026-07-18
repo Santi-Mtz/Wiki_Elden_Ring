@@ -1,11 +1,11 @@
-<main class="page">
+<main class="page" [class]="currentTheme()">
   <header class="topbar">
     <div class="topbar-shell">
       <div class="brand">
         <img src="/assets/Logo/logo_provisional.jpg" alt="AEGIS Wiki" />
         <div>
-          <h1>AEGIS Wiki</h1>
-          <small>Guia comunitaria de Elden Ring</small>
+          <h1>{{ seasonBannerTitle() }}</h1>
+          <small>{{ seasonBannerSubtitle() }}</small>
           @if (isAdmin()) {
             <small class="domain">{{ domain() }}</small>
           }
@@ -26,6 +26,27 @@
             <span>{{ item.label }}</span>
           </a>
         }
+
+        <!-- Menu Desplegable basado en eventos del puntero -->
+        <div class="nav-dropdown-wrapper" (pointerenter)="showDropdown()" (pointerleave)="hideDropdown()">
+          <button class="nav-item nav-dropdown-trigger" type="button" aria-haspopup="true" [attr.aria-expanded]="dropdownVisible()">
+            <i class="pi pi-sitemap" aria-hidden="true"></i>
+            <span>Wiki Categorias</span>
+            <i class="pi pi-chevron-down dropdown-arrow" [class.rotated]="dropdownVisible()" aria-hidden="true"></i>
+          </button>
+          @if (dropdownVisible()) {
+            <div class="nav-dropdown-menu">
+              @for (subItem of topMenu(); track subItem.label) {
+                <a class="dropdown-item" [routerLink]="subItem.routerLink" (click)="hideDropdown()">
+                  @if (subItem.icon) {
+                    <i [class]="subItem.icon" aria-hidden="true"></i>
+                  }
+                  <span>{{ subItem.label }}</span>
+                </a>
+              }
+            </div>
+          }
+        </div>
       </nav>
 
       <button

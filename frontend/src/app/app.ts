@@ -39,6 +39,11 @@ export class App implements OnInit, OnDestroy {
   private autoNavigateTimer: ReturnType<typeof setTimeout> | null = null;
   private lastAutoSearchKey = '';
 
+  protected readonly dropdownVisible = signal(false);
+  protected readonly currentTheme = signal('theme-default');
+  protected readonly seasonBannerTitle = signal('AEGIS Wiki');
+  protected readonly seasonBannerSubtitle = signal('Guia comunitaria de Elden Ring');
+
   protected readonly domain = signal('localhost:4200');
   protected readonly updatedAt = signal(new Date());
   protected readonly armas = signal<Array<{ id?: number; nombre?: string; tipo?: string }>>([]);
@@ -73,6 +78,7 @@ export class App implements OnInit, OnDestroy {
       } else {
         items.splice(1, 0, { label: 'Mi perfil', path: '/vista-usuario', icon: 'pi pi-user' });
       }
+      items.splice(2, 0, { label: 'Bitacora de Misiones', path: '/tareas', icon: 'pi pi-list' });
     }
 
     return items;
@@ -297,10 +303,38 @@ export class App implements OnInit, OnDestroy {
     });
   }
 
+  protected showDropdown(): void {
+    this.dropdownVisible.set(true);
+  }
+
+  protected hideDropdown(): void {
+    this.dropdownVisible.set(false);
+  }
+
   ngOnInit(): void {
     const host = globalThis.window?.location?.host;
     if (host) {
       this.domain.set(host);
+    }
+
+    // Detector de periodo estacional (Calendario)
+    const currentMonth = new Date().getMonth(); // 0 = Ene, 6 = Jul, 11 = Dic
+    if (currentMonth >= 5 && currentMonth <= 7) { // Junio, Julio, Agosto (Verano)
+      this.currentTheme.set('theme-golden-grace');
+      this.seasonBannerTitle.set('AEGIS Wiki · Solsticio de Oro');
+      this.seasonBannerSubtitle.set('Temporada de la Gracia Dorada - Actualizacion de Verano');
+    } else if (currentMonth >= 9 && currentMonth <= 10) { // Octubre, Noviembre (Otono)
+      this.currentTheme.set('theme-shadow-bramble');
+      this.seasonBannerTitle.set('AEGIS Wiki · Cosecha de Sombras');
+      this.seasonBannerSubtitle.set('Temporada del Fuego de la Zarza - Actualizacion de Otono');
+    } else if (currentMonth === 11 || currentMonth <= 1) { // Diciembre, Enero, Febrero (Invierno)
+      this.currentTheme.set('theme-frost-glintstone');
+      this.seasonBannerTitle.set('AEGIS Wiki · Invierno Helado');
+      this.seasonBannerSubtitle.set('Temporada de la Helada del Gigante - Actualizacion Invernal');
+    } else {
+      this.currentTheme.set('theme-default');
+      this.seasonBannerTitle.set('AEGIS Wiki');
+      this.seasonBannerSubtitle.set('Guia comunitaria de Elden Ring');
     }
 
     this.http.get<Array<{ id?: number; nombre?: string; tipo?: string }>>('/api/armas')

@@ -139,40 +139,36 @@ export class App implements OnInit, OnDestroy {
       personajes: filterByTerm(this.personajes())
     };
   });
-  protected readonly firstSearchHit = computed(() => {
-    const term = this.search().trim();
-    if (!term || !this.isAuthenticated()) {
+  protected readonly firstMatchingCategory = computed(() => {
+    const term = this.search().trim().toLowerCase();
+    if (!term) {
       return null;
     }
 
-    const objectsByCategory = this.filteredWikiObjects();
-    const orderedCategories: Array<{
-      key: keyof typeof objectsByCategory;
+    const objects = this.filteredWikiObjects();
+    const categories: Array<{
+      key: keyof typeof objects;
       route: string;
     }> = [
-      { key: 'clases', route: '/clases' },
       { key: 'armas', route: '/armas' },
       { key: 'armaduras', route: '/armaduras' },
       { key: 'talismanes', route: '/talismanes' },
       { key: 'hechizos', route: '/hechizos' },
       { key: 'milagros', route: '/milagros' },
+      { key: 'clases', route: '/clases' },
       { key: 'builds', route: '/builds' },
       { key: 'personajes', route: '/personajes' }
     ];
 
-    for (const category of orderedCategories) {
-      const match = objectsByCategory[category.key][0];
-      if (match?.id) {
-        return {
-          route: category.route,
-          itemId: match.id,
-          nombre: String(match.nombre ?? '')
-        };
+    for (const category of categories) {
+      if (objects[category.key].length > 0) {
+        return category;
       }
     }
 
     return null;
   });
+
   protected readonly filteredSections = computed(() => {
     const term = this.search().trim().toLowerCase();
     if (!term) {
@@ -257,22 +253,22 @@ export class App implements OnInit, OnDestroy {
 
   constructor() {
     effect(() => {
-      const term = this.search().trim().toLowerCase();
-      const hit = this.firstSearchHit();
+      const term = this.search().trim();
+      const matchCat = this.firstMatchingCategory();
 
-      if (!term || !hit) {
+      if (!term || !matchCat) {
         this.lastAutoSearchKey = '';
         if (this.autoNavigateTimer) {
           clearTimeout(this.autoNavigateTimer);
           this.autoNavigateTimer = null;
         }
 
-        // Si se limpia la busqueda, quitamos filtros de URL para mostrar listas completas.
+        // Si se limpia la busqueda, quitamos filtros de URL
         if (!term) {
           const parsed = this.router.parseUrl(this.router.url);
-          const hasObjectFilters = Boolean(parsed.queryParams?.['itemId'] || parsed.queryParams?.['q'] || parsed.fragment);
+          const hasFilters = Boolean(parsed.queryParams?.['q'] || parsed.queryParams?.['itemId']);
 
-          if (hasObjectFilters) {
+          if (hasFilters) {
             const cleanPath = this.router.url.split('?')[0].split('#')[0];
             this.router.navigateByUrl(cleanPath, { replaceUrl: true });
           }
@@ -281,7 +277,7 @@ export class App implements OnInit, OnDestroy {
         return;
       }
 
-      const key = `${hit.route}:${hit.itemId}:${term}`;
+      const key = `${matchCat.route}:${term}`;
       if (key === this.lastAutoSearchKey) {
         return;
       }
@@ -291,15 +287,12 @@ export class App implements OnInit, OnDestroy {
       }
 
       this.autoNavigateTimer = setTimeout(() => {
-        this.router.navigate([hit.route], {
-          queryParams: {
-            itemId: hit.itemId,
-            q: hit.nombre
-          },
-          fragment: `item-${hit.itemId}`
+        this.router.navigate([matchCat.route], {
+          queryParams: { q: term },
+          queryParamsHandling: 'merge'
         });
         this.lastAutoSearchKey = key;
-      }, 180);
+      }, 200);
     });
   }
 

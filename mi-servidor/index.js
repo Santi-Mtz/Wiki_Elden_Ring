@@ -50,6 +50,20 @@ function ensureAdmin(req, res) {
   return false;
 }
 
+async function logAuditoria(usuario, req, accion) {
+  try {
+    const ip = req ? (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1') : '127.0.0.1';
+    const cleanIp = ip.replace(/^.*ffff:/, '').replace(/^.*:/, '');
+    await pool.query(
+      'INSERT INTO bitacora (usuario, ip_address, accion) VALUES ($1, $2, $3)',
+      [usuario || 'Anónimo', cleanIp, accion]
+    );
+    console.log(`[AUDIT] User: ${usuario || 'Anónimo'} | IP: ${cleanIp} | Action: ${accion}`);
+  } catch (err) {
+    console.error('Error al registrar auditoría:', err.message);
+  }
+}
+
 app.use(cors(corsOptions));
 app.use(express.json());
 
@@ -93,6 +107,37 @@ async function initDatabase() {
     await pool.query(`
       ALTER TABLE usuarios
       ADD COLUMN IF NOT EXISTS mfa_temp_secret TEXT
+    `);
+
+    await pool.query(`
+      ALTER TABLE usuarios
+      ADD COLUMN IF NOT EXISTS activo BOOLEAN NOT NULL DEFAULT TRUE
+    `);
+
+    await pool.query(`
+      ALTER TABLE usuarios
+      ADD COLUMN IF NOT EXISTS intentos_fallidos INT NOT NULL DEFAULT 0
+    `);
+
+    await pool.query(`
+      ALTER TABLE usuarios
+      ADD COLUMN IF NOT EXISTS bloqueado_hasta TIMESTAMP DEFAULT NULL
+    `);
+
+    await pool.query(`
+      ALTER TABLE usuarios
+      ADD COLUMN IF NOT EXISTS permisos TEXT[] NOT NULL DEFAULT '{}'
+    `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS bitacora (
+        id SERIAL PRIMARY KEY,
+        usuario VARCHAR(120) NOT NULL,
+        fecha DATE NOT NULL DEFAULT CURRENT_DATE,
+        hora TIME NOT NULL DEFAULT CURRENT_TIME,
+        ip_address VARCHAR(45) NOT NULL,
+        accion VARCHAR(255) NOT NULL
+      )
     `);
 
     await pool.query(`
@@ -243,6 +288,15 @@ async function initDatabase() {
 
 function isValidEmail(email) {
   return /^\S+@\S+\.\S+$/.test(email);
+}
+
+function isStrongPassword(password) {
+  if (!password || password.length < 8) return false;
+  const hasUpperCase = /[A-Z]/.test(password);
+  const hasLowerCase = /[a-z]/.test(password);
+  const hasNumbers = /\d/.test(password);
+  const hasSpecial = /[\W_]/.test(password);
+  return hasUpperCase && hasLowerCase && hasNumbers && hasSpecial;
 }
 
 function buildSessionUser(user) {
@@ -397,8 +451,8 @@ app.post('/auth/register', async (req, res) => {
     return res.status(400).json({ message: 'Correo electrónico no válido.' });
   }
 
-  if (String(password).length < 6) {
-    return res.status(400).json({ message: 'La contraseña debe tener al menos 6 caracteres.' });
+  if (!isStrongPassword(password)) {
+    return res.status(400).json({ message: 'La contraseña debe tener al menos 8 caracteres e incluir mayúsculas, minúsculas, números y caracteres especiales.' });
   }
 
   try {
@@ -416,6 +470,8 @@ app.post('/auth/register', async (req, res) => {
         'INSERT INTO usuarios (nombre, email, role, password_hash) VALUES ($1, $2, $3, $4) RETURNING id, nombre, email, role, mfa_enabled',
         [String(nombre).trim(), normalizedEmail, role, passwordHash]
       );
+
+      await logAuditoria(normalizedEmail, req, 'Registro de usuario');
 
       return res.status(201).json({
         message: 'Registro completado.',
@@ -439,6 +495,8 @@ app.post('/auth/register', async (req, res) => {
       mfa_temp_secret: null
     };
     inMemoryUsers.push(newUser);
+
+    await logAuditoria(normalizedEmail, req, 'Registro de usuario (modo local)');
 
     return res.status(201).json({
       message: 'Registro completado (modo local).',
@@ -466,7 +524,7 @@ app.post('/auth/login', async (req, res) => {
     const normalizedEmail = String(email).trim().toLowerCase();
     if (databaseAvailable) {
       const result = await pool.query(
-        'SELECT id, nombre, email, role, password_hash, mfa_enabled, mfa_secret FROM usuarios WHERE email = $1',
+        'SELECT id, nombre, email, role, password_hash, mfa_enabled, mfa_secret, activo, intentos_fallidos, bloqueado_hasta FROM usuarios WHERE email = $1',
         [normalizedEmail]
       );
 
@@ -475,10 +533,46 @@ app.post('/auth/login', async (req, res) => {
       }
 
       const user = result.rows[0];
+
+      if (!user.activo) {
+        await logAuditoria(normalizedEmail, req, 'Intento de ingreso (cuenta desactivada)');
+        return res.status(403).json({ message: 'Tu cuenta ha sido desactivada por el administrador.' });
+      }
+
+      if (user.bloqueado_hasta && new Date(user.bloqueado_hasta) > new Date()) {
+        const remaining = Math.ceil((new Date(user.bloqueado_hasta).getTime() - Date.now()) / 60000);
+        await logAuditoria(normalizedEmail, req, 'Intento de ingreso (cuenta bloqueada temporalmente)');
+        return res.status(403).json({ message: `Esta cuenta está bloqueada temporalmente. Intente nuevamente en ${remaining} minutos.` });
+      }
+
       const isMatch = await bcrypt.compare(String(password), user.password_hash);
       if (!isMatch) {
-        return res.status(401).json({ message: 'Credenciales incorrectas.' });
+        const attempts = (user.intentos_fallidos || 0) + 1;
+        let lockUntil = null;
+        let msg = 'Credenciales incorrectas.';
+        
+        if (attempts >= 3) {
+          lockUntil = new Date(Date.now() + 15 * 60 * 1000);
+          await pool.query(
+            'UPDATE usuarios SET intentos_fallidos = $1, bloqueado_hasta = $2 WHERE id = $3',
+            [attempts, lockUntil, user.id]
+          );
+          await logAuditoria(normalizedEmail, req, 'Bloqueo temporal de cuenta por intentos fallidos');
+          msg = 'Credenciales incorrectas. La cuenta ha sido bloqueada temporalmente por 15 minutos.';
+        } else {
+          await pool.query(
+            'UPDATE usuarios SET intentos_fallidos = $1 WHERE id = $2',
+            [attempts, user.id]
+          );
+          await logAuditoria(normalizedEmail, req, 'Intento fallido de inicio de sesión');
+        }
+        return res.status(401).json({ message: msg });
       }
+
+      await pool.query(
+        'UPDATE usuarios SET intentos_fallidos = 0, bloqueado_hasta = NULL WHERE id = $1',
+        [user.id]
+      );
 
       if (user.mfa_enabled && user.mfa_secret) {
         return res.json({
@@ -487,6 +581,8 @@ app.post('/auth/login', async (req, res) => {
           mfaToken: createMfaChallenge(user.id)
         });
       }
+
+      await logAuditoria(normalizedEmail, req, 'Inicio de sesión');
 
       return res.json({
         message: 'Inicio de sesión exitoso.',
@@ -499,8 +595,13 @@ app.post('/auth/login', async (req, res) => {
       return res.status(401).json({ message: 'Credenciales incorrectas.' });
     }
 
+    if (user.activo === false) {
+      return res.status(403).json({ message: 'Tu cuenta ha sido desactivada por el administrador.' });
+    }
+
     const isMatch = await bcrypt.compare(String(password), user.passwordHash);
     if (!isMatch) {
+      await logAuditoria(normalizedEmail, req, 'Intento fallido de inicio de sesión (modo local)');
       return res.status(401).json({ message: 'Credenciales incorrectas.' });
     }
 
@@ -511,6 +612,8 @@ app.post('/auth/login', async (req, res) => {
         mfaToken: createMfaChallenge(user.id)
       });
     }
+
+    await logAuditoria(normalizedEmail, req, 'Inicio de sesión (modo local)');
 
     return res.json({
       message: 'Inicio de sesión exitoso (modo local).',
@@ -551,10 +654,12 @@ app.post('/auth/mfa/login/verify', async (req, res) => {
 
       const verifyResult = verifySync({ token: String(code).trim(), secret: user.mfa_secret, window: 1, step: 30 });
       if (!verifyResult?.valid) {
+        await logAuditoria(user.email, req, 'Intento de inicio de sesión fallido (MFA inválido)');
         return res.status(401).json({ message: 'Código de verificación inválido.' });
       }
 
       mfaLoginChallenges.delete(String(mfaToken));
+      await logAuditoria(user.email, req, 'Inicio de sesión (MFA verificado)');
       return res.json({
         message: 'Inicio de sesión exitoso con MFA.',
         user: buildSessionUser(user)
@@ -572,10 +677,12 @@ app.post('/auth/mfa/login/verify', async (req, res) => {
 
     const verifyResult = verifySync({ token: String(code).trim(), secret: user.mfa_secret, window: 1, step: 30 });
     if (!verifyResult?.valid) {
+      await logAuditoria(user.email, req, 'Intento de inicio de sesión fallido (MFA inválido, local)');
       return res.status(401).json({ message: 'Código de verificación inválido.' });
     }
 
     mfaLoginChallenges.delete(String(mfaToken));
+    await logAuditoria(user.email, req, 'Inicio de sesión (MFA verificado, local)');
     return res.json({
       message: 'Inicio de sesión exitoso con MFA (modo local).',
       user: buildSessionUser(user)
@@ -786,6 +893,273 @@ app.post('/auth/mfa/disable', async (req, res) => {
     user.mfa_secret = null;
     user.mfa_temp_secret = null;
     return res.json({ message: 'MFA desactivado correctamente (modo local).', mfaEnabled: false });
+});
+
+app.post('/auth/logout', async (req, res) => {
+  const { email } = req.body ?? {};
+  if (email) {
+    await logAuditoria(email, req, 'Cierre de sesión');
+  }
+  return res.json({ message: 'Sesión cerrada.' });
+});
+
+app.put('/auth/profile', async (req, res) => {
+  const { id, nombre, email } = req.body ?? {};
+  if (!id || !nombre) {
+    return res.status(400).json({ message: 'ID y nombre son obligatorios.' });
+  }
+  try {
+    if (databaseAvailable) {
+      await pool.query(
+        'UPDATE usuarios SET nombre = $1 WHERE id = $2',
+        [String(nombre).trim(), id]
+      );
+      await logAuditoria(email, req, `Edición de perfil (Cambio de nombre: ${nombre})`);
+      return res.json({ message: 'Perfil actualizado correctamente.' });
+    }
+    const user = inMemoryUsers.find((item) => item.id === id);
+    if (user) {
+      user.nombre = String(nombre).trim();
+    }
+    await logAuditoria(email, req, `Edición de perfil local (nombre: ${nombre})`);
+    return res.json({ message: 'Perfil actualizado correctamente.' });
+  } catch (err) {
+    console.error(err.message);
+    return res.status(500).json({ message: 'Error en el servidor.' });
+  }
+});
+
+app.put('/auth/password', async (req, res) => {
+  const { id, email, oldPassword, newPassword } = req.body ?? {};
+  if (!id || !oldPassword || !newPassword) {
+    return res.status(400).json({ message: 'Todos los campos son obligatorios.' });
+  }
+  if (!isStrongPassword(newPassword)) {
+    return res.status(400).json({ message: 'La contraseña nueva no cumple con las políticas de seguridad (mínimo 8 caracteres, mayúscula, minúscula, número y símbolo).' });
+  }
+  try {
+    if (databaseAvailable) {
+      const result = await pool.query(
+        'SELECT password_hash FROM usuarios WHERE id = $1',
+        [id]
+      );
+      if (result.rowCount === 0) {
+        return res.status(404).json({ message: 'Usuario no encontrado.' });
+      }
+      const user = result.rows[0];
+      const isMatch = await bcrypt.compare(String(oldPassword), user.password_hash);
+      if (!isMatch) {
+        await logAuditoria(email, req, 'Intento fallido de cambio de contraseña (clave actual errónea)');
+        return res.status(401).json({ message: 'La contraseña actual es incorrecta.' });
+      }
+      const newHash = await bcrypt.hash(String(newPassword), 10);
+      await pool.query(
+        'UPDATE usuarios SET password_hash = $1 WHERE id = $2',
+        [newHash, id]
+      );
+      await logAuditoria(email, req, 'Cambio de contraseña');
+      return res.json({ message: 'Contraseña actualizada correctamente.' });
+    }
+    const user = inMemoryUsers.find((item) => item.id === id);
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado.' });
+    }
+    const isMatch = await bcrypt.compare(String(oldPassword), user.passwordHash);
+    if (!isMatch) {
+      await logAuditoria(email, req, 'Intento fallido de cambio de contraseña (local, clave actual errónea)');
+      return res.status(401).json({ message: 'La contraseña actual es incorrecta.' });
+    }
+    const newHash = await bcrypt.hash(String(newPassword), 10);
+    user.passwordHash = newHash;
+    await logAuditoria(email, req, 'Cambio de contraseña (local)');
+    return res.json({ message: 'Contraseña actualizada correctamente.' });
+  } catch (err) {
+    console.error(err.message);
+    return res.status(500).json({ message: 'Error en el servidor.' });
+  }
+});
+
+app.get('/admin/usuarios', async (req, res) => {
+  if (!ensureAdmin(req, res)) return;
+  try {
+    if (databaseAvailable) {
+      const result = await pool.query(
+        'SELECT id, nombre, email, role, activo, permisos FROM usuarios ORDER BY id ASC'
+      );
+      return res.json(result.rows);
+    }
+    return res.json(inMemoryUsers.map(u => ({ id: u.id, nombre: u.nombre, email: u.email, role: u.role, activo: u.activo !== false, permisos: u.permisos || [] })));
+  } catch (err) {
+    console.error(err.message);
+    return res.status(500).json({ message: 'Error en el servidor.' });
+  }
+});
+
+app.post('/admin/usuarios', async (req, res) => {
+  if (!ensureAdmin(req, res)) return;
+  const { nombre, email, password, role, permisos } = req.body ?? {};
+  if (!nombre || !email || !password || !role) {
+    return res.status(400).json({ message: 'Nombre, correo, contraseña y rol son obligatorios.' });
+  }
+  if (!isValidEmail(email)) {
+    return res.status(400).json({ message: 'Correo electrónico no válido.' });
+  }
+  if (!isStrongPassword(password)) {
+    return res.status(400).json({ message: 'La contraseña debe tener al menos 8 caracteres e incluir mayúsculas, minúsculas, números y caracteres especiales.' });
+  }
+  try {
+    const normalizedEmail = String(email).trim().toLowerCase();
+    const passwordHash = await bcrypt.hash(String(password), 10);
+    const perms = permisos || [];
+    const adminUserEmail = String(req.headers['x-user-email'] || 'admin@aegis.com').trim().toLowerCase();
+
+    if (databaseAvailable) {
+      const existing = await pool.query('SELECT id FROM usuarios WHERE email = $1', [normalizedEmail]);
+      if (existing.rowCount > 0) {
+        return res.status(409).json({ message: 'El correo ya está registrado.' });
+      }
+      await pool.query(
+        'INSERT INTO usuarios (nombre, email, role, password_hash, permisos) VALUES ($1, $2, $3, $4, $5)',
+        [String(nombre).trim(), normalizedEmail, role, passwordHash, perms]
+      );
+      await logAuditoria(adminUserEmail, req, `Alta de usuario (Email: ${normalizedEmail}, Rol: ${role})`);
+      return res.status(201).json({ message: 'Usuario creado exitosamente.' });
+    }
+    const existing = inMemoryUsers.find(u => u.email === normalizedEmail);
+    if (existing) {
+      return res.status(409).json({ message: 'El correo ya está registrado.' });
+    }
+    inMemoryUsers.push({
+      id: inMemoryUserId++,
+      nombre: String(nombre).trim(),
+      email: normalizedEmail,
+      role,
+      passwordHash,
+      activo: true,
+      permisos: perms
+    });
+    await logAuditoria(adminUserEmail, req, `Alta de usuario local (Email: ${normalizedEmail}, Rol: ${role})`);
+    return res.status(201).json({ message: 'Usuario creado exitosamente.' });
+  } catch (err) {
+    console.error(err.message);
+    return res.status(500).json({ message: 'Error en el servidor.' });
+  }
+});
+
+app.put('/admin/usuarios/:id', async (req, res) => {
+  if (!ensureAdmin(req, res)) return;
+  const userId = Number(req.params.id);
+  const { nombre, role, activo, permisos } = req.body ?? {};
+  const adminUserEmail = String(req.headers['x-user-email'] || 'admin@aegis.com').trim().toLowerCase();
+
+  try {
+    if (databaseAvailable) {
+      const oldRes = await pool.query('SELECT nombre, role, activo, email FROM usuarios WHERE id = $1', [userId]);
+      if (oldRes.rowCount === 0) {
+        return res.status(404).json({ message: 'Usuario no encontrado.' });
+      }
+      const old = oldRes.rows[0];
+      
+      await pool.query(
+        'UPDATE usuarios SET nombre = $1, role = $2, activo = $3, permisos = $4 WHERE id = $5',
+        [String(nombre).trim(), role, activo, permisos || [], userId]
+      );
+
+      let auditMsg = `Edición de usuario (${old.email})`;
+      if (old.role !== role) auditMsg += ` (Cambio de rol: ${old.role} -> ${role})`;
+      if (old.activo !== activo) auditMsg += ` (Estado activo: ${old.activo} -> ${activo})`;
+      
+      await logAuditoria(adminUserEmail, req, auditMsg);
+      return res.json({ message: 'Usuario actualizado correctamente.' });
+    }
+    const user = inMemoryUsers.find(u => u.id === userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado.' });
+    }
+    user.nombre = String(nombre).trim();
+    user.role = role;
+    user.activo = activo;
+    user.permisos = permisos || [];
+    await logAuditoria(adminUserEmail, req, `Edición de usuario local (${user.email})`);
+    return res.json({ message: 'Usuario actualizado correctamente.' });
+  } catch (err) {
+    console.error(err.message);
+    return res.status(500).json({ message: 'Error en el servidor.' });
+  }
+});
+
+app.delete('/admin/usuarios/:id', async (req, res) => {
+  if (!ensureAdmin(req, res)) return;
+  const userId = Number(req.params.id);
+  const adminUserEmail = String(req.headers['x-user-email'] || 'admin@aegis.com').trim().toLowerCase();
+
+  try {
+    if (databaseAvailable) {
+      const oldRes = await pool.query('SELECT email FROM usuarios WHERE id = $1', [userId]);
+      if (oldRes.rowCount === 0) {
+        return res.status(404).json({ message: 'Usuario no encontrado.' });
+      }
+      await pool.query('UPDATE usuarios SET activo = false WHERE id = $1', [userId]);
+      await logAuditoria(adminUserEmail, req, `Eliminación lógica de usuario (${oldRes.rows[0].email})`);
+      return res.json({ message: 'Usuario desactivado lógicamente.' });
+    }
+    const user = inMemoryUsers.find(u => u.id === userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado.' });
+    }
+    user.activo = false;
+    await logAuditoria(adminUserEmail, req, `Eliminación lógica de usuario local (${user.email})`);
+    return res.json({ message: 'Usuario desactivado lógicamente.' });
+  } catch (err) {
+    console.error(err.message);
+    return res.status(500).json({ message: 'Error en el servidor.' });
+  }
+});
+
+app.put('/admin/usuarios/:id/password', async (req, res) => {
+  if (!ensureAdmin(req, res)) return;
+  const userId = Number(req.params.id);
+  const { newPassword } = req.body ?? {};
+  const adminUserEmail = String(req.headers['x-user-email'] || 'admin@aegis.com').trim().toLowerCase();
+
+  if (!newPassword || !isStrongPassword(newPassword)) {
+    return res.status(400).json({ message: 'La contraseña nueva no cumple con las políticas de seguridad.' });
+  }
+
+  try {
+    const newHash = await bcrypt.hash(String(newPassword), 10);
+    if (databaseAvailable) {
+      const oldRes = await pool.query('SELECT email FROM usuarios WHERE id = $1', [userId]);
+      if (oldRes.rowCount === 0) {
+        return res.status(404).json({ message: 'Usuario no encontrado.' });
+      }
+      await pool.query('UPDATE usuarios SET password_hash = $1 WHERE id = $2', [newHash, userId]);
+      await logAuditoria(adminUserEmail, req, `Restablecimiento de contraseña de usuario (${oldRes.rows[0].email})`);
+      return res.json({ message: 'Contraseña restablecida exitosamente.' });
+    }
+    const user = inMemoryUsers.find(u => u.id === userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Usuario no encontrado.' });
+    }
+    user.passwordHash = newHash;
+    await logAuditoria(adminUserEmail, req, `Restablecimiento de contraseña de usuario local (${user.email})`);
+    return res.json({ message: 'Contraseña restablecida exitosamente.' });
+  } catch (err) {
+    console.error(err.message);
+    return res.status(500).json({ message: 'Error en el servidor.' });
+  }
+});
+
+app.get('/admin/bitacora', async (req, res) => {
+  if (!ensureAdmin(req, res)) return;
+  try {
+    if (databaseAvailable) {
+      const result = await pool.query(
+        'SELECT id, usuario, fecha::text, hora::text, ip_address, accion FROM bitacora ORDER BY id DESC LIMIT 100'
+      );
+      return res.json(result.rows);
+    }
+    return res.json([]);
   } catch (err) {
     console.error(err.message);
     return res.status(500).json({ message: 'Error en el servidor.' });

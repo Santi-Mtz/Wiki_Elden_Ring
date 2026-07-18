@@ -84,6 +84,9 @@
               <p-tag severity="info" [value]="user.role === 'admin' ? 'Administrador' : 'Jugador'"></p-tag>
               <button pButton type="button" icon="pi pi-user" label="Perfil" [routerLink]="user.role === 'admin' ? '/vista-admin' : '/vista-usuario'" severity="secondary" size="small"></button>
               <button pButton type="button" icon="pi pi-sign-out" label="Salir" severity="danger" size="small" (click)="logout()"></button>
+              @if (user.role === 'admin') {
+                <button pButton type="button" icon="pi pi-users" label="Gestionar usuarios" routerLink="/admin-usuarios" severity="contrast" size="small" style="width: 100%; margin-top: 4px;"></button>
+              }
             </div>
           </div>
         } @else {

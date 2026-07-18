@@ -6,7 +6,20 @@ CREATE TABLE IF NOT EXISTS usuarios (
   email VARCHAR(120) UNIQUE NOT NULL,
   role VARCHAR(16) NOT NULL DEFAULT 'user' CHECK (role IN ('admin', 'user')),
   password_hash TEXT NOT NULL,
+  activo BOOLEAN NOT NULL DEFAULT TRUE,
+  intentos_fallidos INT NOT NULL DEFAULT 0,
+  bloqueado_hasta TIMESTAMP DEFAULT NULL,
+  permisos TEXT[] NOT NULL DEFAULT '{}',
   created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS bitacora (
+  id SERIAL PRIMARY KEY,
+  usuario VARCHAR(120) NOT NULL,
+  fecha DATE NOT NULL DEFAULT CURRENT_DATE,
+  hora TIME NOT NULL DEFAULT CURRENT_TIME,
+  ip_address VARCHAR(45) NOT NULL,
+  accion VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS tipos_arma (

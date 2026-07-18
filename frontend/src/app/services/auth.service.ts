@@ -111,8 +111,61 @@ export class AuthService {
   }
 
   logout(): void {
+    const user = this.currentUserSignal();
+    if (user?.email) {
+      this.http.post('/api/auth/logout', { email: user.email }).subscribe({
+        error: (err) => console.error('Error al registrar cierre de sesión en backend:', err)
+      });
+    }
     localStorage.removeItem(this.storageKey);
     this.currentUserSignal.set(null);
+  }
+
+  updateProfile(payload: { id: number; nombre: string; email: string }): Observable<any> {
+    return this.http.put('/api/auth/profile', payload).pipe(
+      tap(() => {
+        const current = this.currentUserSignal();
+        if (current && current.id === payload.id) {
+          this.setUser({ ...current, nombre: payload.nombre });
+        }
+      })
+    );
+  }
+
+  changePassword(payload: { id: number; email: string; oldPassword: string; newPassword: string }): Observable<any> {
+    return this.http.put('/api/auth/password', payload);
+  }
+
+  private getAdminHeaders() {
+    const current = this.currentUserSignal();
+    return {
+      'x-user-role': current?.role || '',
+      'x-user-email': current?.email || ''
+    };
+  }
+
+  getAdminUsers(): Observable<any[]> {
+    return this.http.get<any[]>('/api/admin/usuarios', { headers: this.getAdminHeaders() });
+  }
+
+  createAdminUser(payload: any): Observable<any> {
+    return this.http.post('/api/admin/usuarios', payload, { headers: this.getAdminHeaders() });
+  }
+
+  updateAdminUser(id: number, payload: any): Observable<any> {
+    return this.http.put(`/api/admin/usuarios/${id}`, payload, { headers: this.getAdminHeaders() });
+  }
+
+  deleteAdminUser(id: number): Observable<any> {
+    return this.http.delete(`/api/admin/usuarios/${id}`, { headers: this.getAdminHeaders() });
+  }
+
+  resetAdminUserPassword(id: number, payload: any): Observable<any> {
+    return this.http.put(`/api/admin/usuarios/${id}/password`, payload, { headers: this.getAdminHeaders() });
+  }
+
+  getAuditLogs(): Observable<any[]> {
+    return this.http.get<any[]>('/api/admin/bitacora', { headers: this.getAdminHeaders() });
   }
 
   private setUser(user: SessionUser): void {

@@ -1,0 +1,163 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{geometry}
+\geometry{margin=1in}
+
+% Configuración de colores para los fragmentos de código
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.08,0.11,0.17}
+\definecolor{codefg}{rgb}{0.9,0.9,0.9}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{orange},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize\color{codefg},
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
+\title{Documentación de Actualización Estacional y Manipulación del DOM}
+\author{AEGIS Wiki - Elden Ring}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Introducción}
+Esta documentación detalla los desarrollos técnicos y las características implementadas para la actualización de temporada de la \textbf{Wiki de Elden Ring (AEGIS Wiki)}, enfocado en eventos del puntero, tematización del calendario y administración interactiva del DOM.
+
+\section{Evento de Destacado mediante Puntero (Spotlight Glow)}
+
+\subsection{Descripción}
+Para la \textbf{Temporada de la Gracia Dorada (Verano)}, se implementó un evento interactivo que detecta la posición del cursor sobre las tarjetas de la interfaz para proyectar un foco o resplandor de luz dorado (\textit{spotlight}) que sigue el movimiento del puntero, acompañado de una transición de escala y cambio de color del borde.
+
+\subsection{Detalles Técnicos e Implementación}
+El evento se programó en Angular mediante una directiva \textit{standalone} (\texttt{HighlightDirective}), utilizando escuchadores de eventos nativos de JavaScript para dispositivos señaladores (\textit{Pointer Events}):
+
+\begin{enumerate}
+    \item \textbf{Directiva (\texttt{highlight.directive.ts})}:
+    \begin{itemize}
+        \item \textbf{\texttt{pointerenter}}: Activa la clase \texttt{.seasonal-highlight-active} que inicia la transición visual (escala, borde dorado y opacidad del brillo).
+        \item \textbf{\texttt{pointermove}}: Registra las coordenadas relativas \texttt{clientX} y \texttt{clientY} respecto al contenedor usando \texttt{getBoundingClientRect()}, y actualiza dos variables de entorno CSS (\texttt{--mouse-x} y \texttt{--mouse-y}).
+        \item \textbf{\texttt{pointerleave}}: Remueve la clase activa y oculta el resplandor para optimizar el rendimiento y limpiar el DOM visual.
+    \end{itemize}
+\end{enumerate}
+
+\begin{lstlisting}[language=Java, caption=Fragmento de la directiva highlight.directive.ts en TypeScript]
+// Fragmento de highlight.directive.ts
+@HostListener('pointermove', ['$event'])
+onPointerMove(event: PointerEvent) {
+  const rect = this.el.nativeElement.getBoundingClientRect();
+  const x = event.clientX - rect.left;
+  const y = event.clientY - rect.top;
+  this.renderer.setStyle(this.el.nativeElement, '--mouse-x', `${x}px`);
+  this.renderer.setStyle(this.el.nativeElement, '--mouse-y', `${y}px`);
+}
+\end{lstlisting}
+
+\begin{enumerate}
+    \item[2.] \textbf{Estilos CSS (\texttt{styles.css})}:
+    Utiliza un gradiente radial flotante posicionado con las variables actualizadas por el evento JavaScript:
+\end{enumerate}
+
+\begin{lstlisting}[language=HTML, caption=Fragmento de estilos CSS para el spotlight]
+.seasonal-highlight::before {
+	content: '';
+	position: absolute;
+	top: 0; left: 0; right: 0; bottom: 0;
+	background: radial-gradient(
+		80px circle at var(--mouse-x, 0px) var(--mouse-y, 0px),
+		rgba(202, 165, 81, 0.15),
+		transparent 80%
+	);
+	opacity: 0;
+	transition: opacity 0.3s ease;
+	pointer-events: none;
+}
+.seasonal-highlight-active::before {
+	opacity: 1;
+}
+\end{lstlisting}
+
+\section{Menú Desplegable Basado en Eventos de Puntero (Dropdown)}
+
+\subsection{Descripción}
+Un menú de navegación en la barra superior (``Wiki Categorías'') que se despliega dinámicamente al pasar el puntero sobre él y se oculta cuando el puntero sale de su área delimitada. Esto permite una navegación rápida y fluida sin requerir clics innecesarios.
+
+\subsection{Detalles Técnicos e Implementación}
+\begin{itemize}
+    \item El contenedor del menú se enlazó a los eventos JavaScript/Angular \texttt{(pointerenter)} y \texttt{(pointerleave)} en la plantilla \texttt{app.html}.
+    \item Dichos eventos modifican el estado de un Signal reactivo (\texttt{dropdownVisible}).
+    \item Al cambiar el estado a \texttt{true}, el DOM renderiza condicionalmente el contenedor del menú desplegable (\texttt{.nav-dropdown-menu}), el cual posee un diseño \textit{glassmorphic} y una animación de entrada de desvanecimiento y deslizamiento (\texttt{slideDownFade}).
+    \item Al hacer clic en un enlace de categoría o retirar el puntero, se dispara el evento para cerrar el menú inmediatamente.
+\end{itemize}
+
+\section{Tematización de Interfaz basada en el Calendario}
+
+\subsection{Descripción}
+El sitio web cuenta con un detector de fecha calendarizado que adapta la cabecera, el banner y el esquema de colores de la interfaz dependiendo del mes actual en el sistema del cliente.
+
+\subsection{Calendario de Eventos}
+\begin{itemize}
+    \item \textbf{Verano (Meses Junio, Julio, Agosto)}: \textit{Temporada de la Gracia Dorada (Golden Grace Season)}.
+    \begin{itemize}
+        \item Estilo: Resplandor dorado, ámbar y azul cobalto oscuro.
+        \item Banner: ``AEGIS Wiki $\cdot$ Solsticio de Oro - Temporada de la Gracia Dorada''.
+    \end{itemize}
+    \item \textbf{Otoño (Meses Octubre, Noviembre)}: \textit{Temporada del Fuego de la Zarza (Shadow Bramble Season)}.
+    \begin{itemize}
+        \item Estilo: Resplandor carmesí, ceniza y negro carbón.
+        \item Banner: ``AEGIS Wiki $\cdot$ Cosecha de Sombras - Temporada del Fuego de la Zarza''.
+    \end{itemize}
+    \item \textbf{Invierno (Meses Diciembre, Enero, Febrero)}: \textit{Temporada de la Helada del Gigante (Frost Glintstone Season)}.
+    \begin{itemize}
+        \item Estilo: Resplandor azul glacial, escarcha y plateado.
+        \item Banner: ``AEGIS Wiki $\cdot$ Invierno Helado - Temporada de la Helada del Gigante''.
+    \end{itemize}
+    \item \textbf{Resto del año}: Tema por defecto del sitio.
+\end{itemize}
+
+\subsection{Flujo de Ejecución}
+En el ciclo de inicio \texttt{ngOnInit()} de \texttt{app.ts}, se evalúa:
+\begin{lstlisting}[language=Java]
+const currentMonth = new Date().getMonth();
+// Asigna clases como 'theme-golden-grace' y modifica los signals del banner
+\end{lstlisting}
+La clase resultante se acopla al tag principal del DOM \texttt{<main [class]="currentTheme()">}, heredando los colores correspondientes de las variables CSS.
+
+\section{Administrador de Tareas: Bitácora de Misiones del Sinluz}
+
+\subsection{Descripción}
+Para satisfacer la manipulación avanzada de la estructura, contenido y estilos del DOM, se implementó una página interactiva de administración de misiones a la cual se accede desde la barra lateral o el menú desplegable.
+
+\subsection{Funciones Implementadas del DOM y Eventos}
+\begin{enumerate}
+    \item \textbf{Creación}: El usuario llena un formulario. El botón de envío se valida activamente. Al presionar ``Añadir Misión'', se crea dinámicamente una nueva tarjeta en la rejilla del DOM.
+    \item \textbf{Validaciones}: Validación en tiempo real del título (mínimo 4 letras) y el objetivo (mínimo 10 letras), mostrando mensajes de error dinámicos en el DOM y deshabilitando el botón de envío si no se cumplen.
+    \item \textbf{Modificación (Edición)}: Al presionar ``Editar'', se cargan los datos en el formulario para modificarlos. Al guardar, se actualiza el contenido de la tarjeta en el DOM.
+    \item \textbf{Actualización de Estados (Completado)}: Al presionar ``Completar/Reabrir'', se altera el estilo de la tarjeta (se tacha el título, se cambia la opacidad y el color del chip de estado) y se actualizan dinámicamente las estadísticas del progreso.
+    \item \textbf{Eliminación}: El botón ``Eliminar'' remueve físicamente el nodo del DOM y recalcula las estadísticas globales de misiones de inmediato.
+    \item \textbf{Estadísticas Dinámicas}: Un panel circular calcula de forma computada el porcentaje de misiones completas y actualiza los contadores en tiempo real.
+\end{enumerate}
+
+\end{document}

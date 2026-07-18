@@ -893,6 +893,10 @@ app.post('/auth/mfa/disable', async (req, res) => {
     user.mfa_secret = null;
     user.mfa_temp_secret = null;
     return res.json({ message: 'MFA desactivado correctamente (modo local).', mfaEnabled: false });
+  } catch (err) {
+    console.error(err.message);
+    return res.status(500).json({ message: 'Error en el servidor.' });
+  }
 });
 
 app.post('/auth/logout', async (req, res) => {

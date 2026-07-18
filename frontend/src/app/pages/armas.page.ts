@@ -6,6 +6,7 @@ import { ButtonModule } from 'primeng/button';
 import { Subscription } from 'rxjs';
 import { LiveUpdatesService } from '../services/live-updates.service';
 import { ActivatedRoute } from '@angular/router';
+import { HighlightDirective } from '../directives/highlight.directive';
 
 interface Arma {
   id: number;
@@ -20,7 +21,7 @@ interface Arma {
 @Component({
   selector: 'app-armas-page',
   standalone: true,
-  imports: [CardModule, TagModule, ButtonModule],
+  imports: [CardModule, TagModule, ButtonModule, HighlightDirective],
   template: `
     <section class="page-section">
       <div class="section-toolbar">
@@ -41,7 +42,7 @@ interface Arma {
         } @else {
           <div class="wiki-card-grid">
             @for (arma of armas(); track arma.id) {
-              <p-card [subheader]="arma.escalado" [attr.id]="'item-' + arma.id">
+              <p-card [subheader]="arma.escalado" [attr.id]="'item-' + arma.id" appHighlight>
                 <ng-template pTemplate="title">{{ arma.nombre }}</ng-template>
                 <div class="weapon-card-media">
                   <img [src]="getWeaponImage(arma)" [alt]="arma.nombre" />

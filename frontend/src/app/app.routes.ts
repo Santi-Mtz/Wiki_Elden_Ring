@@ -19,6 +19,7 @@ export const routes: Routes = [
 	{ path: 'quienes-somos', loadComponent: () => import('./pages/quienes-somos.page').then((m) => m.QuienesSomosPage) },
 	{ path: 'servicios', loadComponent: () => import('./pages/servicios.page').then((m) => m.ServiciosPage) },
 	{ path: 'contacto', loadComponent: () => import('./pages/contacto.page').then((m) => m.ContactoPage) },
+	{ path: 'tareas', canActivate: [authGuard], loadComponent: () => import('./pages/tareas.page').then((m) => m.TareasPage) },
 	{ path: 'vista-admin', canActivate: [authGuard, adminGuard], loadComponent: () => import('./pages/vista-admin.page').then((m) => m.VistaAdminPage) },
 	{ path: 'vista-usuario', canActivate: [authGuard, userGuard], loadComponent: () => import('./pages/vista-usuario.page').then((m) => m.VistaUsuarioPage) },
 	{ path: 'seguridad', canActivate: [authGuard], loadComponent: () => import('./pages/seguridad.page').then((m) => m.SeguridadPage) },

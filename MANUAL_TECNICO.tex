@@ -1,0 +1,125 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{geometry}
+\geometry{margin=1in}
+
+% Configuración de colores para código fuente
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.08,0.11,0.17}
+\definecolor{codefg}{rgb}{0.9,0.9,0.9}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{orange},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize\color{codefg},
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
+\title{Manual Técnico: Sistema de Administración, Seguridad y Auditoría}
+\author{AEGIS Wiki - Elden Ring}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Introducción}
+Este manual detalla la arquitectura, el diseño de la base de datos, los endpoints de la API, las políticas de seguridad y el sistema de auditoría implementados para cumplir con los requerimientos técnicos de las \textbf{Prácticas 11 y 12}.
+
+\section{Arquitectura General del Sistema}
+El sistema sigue una arquitectura desacoplada cliente-servidor (SPA + API REST):
+
+\begin{itemize}
+    \item \textbf{Frontend}: Angular 21 (SPA) con componentes standalone y signals para reactividad. Utiliza PrimeNG como biblioteca de componentes de interfaz.
+    \item \textbf{Backend}: Node.js con Express, arquitectura REST y pool de conexiones PostgreSQL.
+    \item \textbf{Base de Datos}: PostgreSQL 17 hospedado en la nube mediante \textbf{Neon}, con cifrado SSL obligatorio y conexión pooled.
+    \item \textbf{Servidor Backend}: Desplegado en \textbf{Render} dentro de un contenedor Docker automatizado.
+    \item \textbf{Servidor Frontend}: Desplegado en \textbf{Vercel} con reescritura de API dinámica (\texttt{vercel.json}).
+\end{itemize}
+
+\section{Estructura de la Base de Datos}
+Las tablas involucradas en el control de acceso, seguridad y auditoría en Neon PostgreSQL son:
+
+\subsection{Tabla: \texttt{usuarios}}
+Almacena las cuentas de usuario y los estados de bloqueo/seguridad:
+\begin{lstlisting}[language=SQL, caption=Definición física de la tabla de usuarios]
+CREATE TABLE IF NOT EXISTS usuarios (
+  id SERIAL PRIMARY KEY,
+  nombre VARCHAR(80) NOT NULL,
+  email VARCHAR(120) UNIQUE NOT NULL,
+  role VARCHAR(16) NOT NULL DEFAULT 'user' CHECK (role IN ('admin', 'user')),
+  password_hash TEXT NOT NULL,
+  activo BOOLEAN NOT NULL DEFAULT TRUE,                
+  intentos_fallidos INT NOT NULL DEFAULT 0,            
+  bloqueado_hasta TIMESTAMP DEFAULT NULL,              
+  permisos TEXT[] NOT NULL DEFAULT '{}',               
+  created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+\end{lstlisting}
+
+\subsection{Tabla: \texttt{bitacora} (Auditoría)}
+Registra las acciones clave de forma inmutable:
+\begin{lstlisting}[language=SQL, caption=Definición física de la tabla de bitácora]
+CREATE TABLE IF NOT EXISTS bitacora (
+  id SERIAL PRIMARY KEY,
+  usuario VARCHAR(120) NOT NULL,                       
+  fecha DATE NOT NULL DEFAULT CURRENT_DATE,            
+  hora TIME NOT NULL DEFAULT CURRENT_TIME,            
+  ip_address VARCHAR(45) NOT NULL,                     
+  accion VARCHAR(255) NOT NULL                         
+);
+\end{lstlisting}
+
+\section{Políticas y Controles de Seguridad Implementados}
+El sistema cuenta con los siguientes controles de seguridad activa:
+
+\begin{enumerate}
+    \item \textbf{Cifrado Hash de Contraseñas}: Las claves se encriptan de manera unidireccional en el backend usando la biblioteca \texttt{bcrypt} con un costo de cómputo de 10 salt rounds (\texttt{bcrypt.hash(password, 10)}).
+    \item \textbf{Políticas de Contraseña Segura}: Las contraseñas se evalúan para verificar que cumplan con una longitud mínima de 8 caracteres, al menos una letra mayúscula, una minúscula, un número y un carácter especial.
+    \item \textbf{Bloqueo de Cuenta por Fuerza Bruta (Lockout)}: Si un usuario acumula 3 intentos fallidos de inicio de sesión de forma consecutiva, la columna \texttt{bloqueado\_hasta} se establece a \texttt{NOW() + 15 minutos}. El servidor deniega todas las peticiones posteriores hasta que se cumpla el plazo.
+    \item \textbf{Baja Lógica (Soft Delete)}: Las cuentas eliminadas por el administrador no se borran físicamente mediante \texttt{DELETE} (lo cual provocaría huérfanos en auditoría). En su lugar, se actualiza la columna \texttt{activo} a \texttt{false} (\texttt{UPDATE usuarios SET activo = false}).
+    \item \textbf{Expiración de Sesión Local}: El frontend almacena la sesión localmente y la hace expirar de forma transparente tras 30 minutos de inactividad, forzando un cierre de sesión.
+\end{enumerate}
+
+\section{Endpoints de la API (REST)}
+
+\subsection{Endpoints de Autenticación y Perfil}
+\begin{itemize}
+    \item \texttt{POST /auth/register}: Registro de usuario aplicando políticas de contraseña.
+    \item \texttt{POST /auth/login}: Validación de credenciales, control de bloqueo e inicio de sesión.
+    \item \texttt{POST /auth/logout}: Registra la salida en la bitácora de auditoría.
+    \item \texttt{PUT /auth/profile}: Edición del nombre del usuario de la sesión actual (auditable).
+    \item \texttt{PUT /auth/password}: Cambio de contraseña propia (auditable).
+\end{itemize}
+
+\subsection{Endpoints de Administración (\texttt{x-user-role: admin} requerido)}
+\begin{itemize}
+    \item \texttt{GET /admin/usuarios}: Listar cuentas y permisos de todos los usuarios.
+    \item \texttt{POST /admin/usuarios}: Crear un usuario asignando roles y permisos.
+    \item \texttt{PUT /admin/usuarios/:id}: Actualizar datos, roles, permisos y estado activo de un usuario.
+    \item \texttt{PUT /admin/usuarios/:id/password}: Reestablecer la clave de un usuario desde la administración.
+    \item \texttt{DELETE /admin/usuarios/:id}: Desactivación lógica (baja) del usuario.
+    \item \texttt{GET /admin/bitacora}: Obtener los registros de la bitácora de auditoría.
+\end{itemize}
+
+\end{document}

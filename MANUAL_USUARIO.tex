@@ -1,0 +1,82 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{hyperref}
+\usepackage{geometry}
+\geometry{margin=1in}
+
+\title{Manual de Usuario: Sistema de Administración, Seguridad y Auditoría}
+\author{AEGIS Wiki - Elden Ring}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Introducción}
+Este manual te guiará paso a paso en el uso de la Wiki de Elden Ring (AEGIS Wiki) para gestionar tu cuenta de usuario, configurar la seguridad y, si eres administrador, gestionar los accesos y revisar la bitácora de auditoría del sistema (Prácticas 11 y 12).
+
+\section{Registro e Inicio de Sesión}
+
+\subsection{Registrar una Cuenta}
+\begin{enumerate}
+    \item Abre tu navegador e ingresa al sitio.
+    \item Haz clic en \textbf{Registro} en el panel de navegación izquierdo o ingresa a \texttt{/registro}.
+    \item Escribe tu Nombre Completo, Correo Electrónico y una Contraseña.
+    \begin{itemize}
+        \item \textit{Nota de seguridad}: La contraseña debe cumplir las políticas de fuerza (mínimo 8 caracteres, al menos una mayúscula, un número y un símbolo especial como \texttt{!}, \texttt{@}, \texttt{\#}).
+    \end{itemize}
+    \item Haz clic en \textbf{Registrarme}. Serás redirigido e iniciarás sesión automáticamente.
+\end{enumerate}
+
+\subsection{Iniciar Sesión (Login)}
+\begin{enumerate}
+    \item Ve al panel de navegación y haz clic en \textbf{Login} (o ingresa a \texttt{/login}).
+    \item Digita tu correo y tu contraseña.
+    \item Si tienes la verificación en dos pasos (2FA) configurada, abre Microsoft Authenticator en tu celular, digita el código de 6 números y confírmalo.
+\end{enumerate}
+
+\textbf{Nota de Advertencia (Bloqueo Temporal de Cuenta):}\\
+Si ingresas la contraseña de forma incorrecta \textbf{3 veces consecutivas}, tu cuenta se bloqueará automáticamente por seguridad durante \textbf{15 minutos}. Verás una alerta roja en pantalla. Deberás esperar a que expire el lapso antes de intentar de nuevo.
+
+\section{Autogestión de Perfil (Usuario Regular)}
+Al ingresar a la Wiki, haz clic en tu nombre en el panel lateral y selecciona \textbf{Perfil} para entrar a tu perfil.
+
+\subsection{Editar Datos del Perfil}
+\begin{itemize}
+    \item En la tarjeta \textbf{Editar Datos}, verás tu nombre actual.
+    \item Modifícalo en el cuadro de texto y presiona \textbf{Guardar Datos}. Tu avatar e iniciales cambiarán de forma inmediata.
+\end{itemize}
+
+\subsection{Cambiar Contraseña}
+\begin{itemize}
+    \item En la sección inferior \textbf{Seguridad de la Cuenta}, introduce tu contraseña actual.
+    \item Digita tu nueva contraseña y confírmala en la casilla inferior.
+    \item Presiona \textbf{Actualizar Contraseña} para efectuar el cambio.
+\end{itemize}
+
+\section{Módulo Administrativo (Administrador)}
+Si has ingresado con una cuenta con rol de Administrador, verás un botón negro llamado \textbf{Gestionar usuarios} en el panel de navegación lateral. El módulo administrativo está dividido en tres pestañas:
+
+\subsection{Pestaña: Cuentas (Gestión de Usuarios)}
+Esta sección permite el control total de los empleados:
+\begin{itemize}
+    \item \textbf{Crear Usuario}: Utiliza el formulario \textbf{Nuevo Usuario} a la izquierda. Escribe su nombre, correo, rol principal, contraseña temporal y presiona \textit{Crear Usuario}.
+    \item \textbf{Editar Usuario}: Haz clic en el botón azul \textbf{Editar} al lado de cualquier usuario de la lista. Su información se cargará en el formulario para que puedas editar su nombre, rol, estado activo o permisos personalizados.
+    \item \textbf{Baja Lógica}: Haz clic en el botón rojo \textbf{Baja Lógica} al lado de un usuario. Esto desactivará su cuenta. Su fila se volverá opaca en el listado y no podrá iniciar sesión en la plataforma, pero sus datos se conservarán en el sistema para fines de auditoría.
+    \item \textbf{Restablecer Contraseña}: Si un empleado olvida su contraseña, haz clic en el botón amarillo \textbf{Clave} al lado de su nombre. Se desplegará un formulario inferior para que le asignes una nueva clave segura.
+\end{itemize}
+
+\subsection{Pestaña: Roles y Permisos}
+\begin{itemize}
+    \item Visualiza el desglose de los permisos predeterminados del sistema asociados a los roles de \textbf{Administrador (admin)} y \textbf{Usuario Regular (user)}.
+\end{itemize}
+
+\subsection{Pestaña: Bitácora de Auditoría}
+\begin{itemize}
+    \item Visualiza la tabla de historial donde se registran todas las actividades importantes en tiempo real.
+    \item Presiona \textbf{Actualizar Bitácora} para cargar los registros más recientes.
+    \item Verás columnas detalladas con el ID del log, el usuario ejecutor, la fecha y hora exacta, la dirección IP origen y la acción detallada.
+\end{itemize}
+
+\end{document}

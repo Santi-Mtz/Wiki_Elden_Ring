@@ -70,7 +70,7 @@ class EcosystemState extends ChangeNotifier {
   // BLE States
   MyConnectionState _bleState = MyConnectionState.disconnected;
   BluetoothDevice? _connectedDevice;
-  int _runes = 0;
+  int _playTimeMinutes = 0;
   int _heartRate = 0;
   int _steps = 0;
 
@@ -86,7 +86,7 @@ class EcosystemState extends ChangeNotifier {
   Map<String, dynamic>? get user => _user;
   List<dynamic> get weapons => _weapons;
   MyConnectionState get bleState => _bleState;
-  int get runes => _runes;
+  int get playTimeMinutes => _playTimeMinutes;
   int get heartRate => _heartRate;
   int get steps => _steps;
   bool get isSimulating => _isSimulating;
@@ -203,7 +203,7 @@ class EcosystemState extends ChangeNotifier {
     _simulatorTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       _steps += (1 + (timer.tick % 3));
       _heartRate = 75 + (timer.tick % 55);
-      _runes += 50;
+      _playTimeMinutes += 10; // 10 minutos simulados por segundo real
       notifyListeners();
     });
   }
@@ -212,13 +212,13 @@ class EcosystemState extends ChangeNotifier {
     _simulatorTimer?.cancel();
     _simulatorTimer = null;
     _bleState = MyConnectionState.disconnected;
-    _runes = 0;
+    _playTimeMinutes = 0;
     _heartRate = 0;
     _steps = 0;
   }
 
-  void resetRunes() {
-    _runes = 0;
+  void resetPlayTime() {
+    _playTimeMinutes = 0;
     notifyListeners();
   }
 
@@ -309,7 +309,7 @@ class EcosystemState extends ChangeNotifier {
         } else {
           _bleState = MyConnectionState.disconnected;
           _connectedDevice = null;
-          _runes = 0;
+          _playTimeMinutes = 0;
           _heartRate = 0;
           _steps = 0;
         }
@@ -323,7 +323,7 @@ class EcosystemState extends ChangeNotifier {
             final sub = c.onValueReceived.listen((value) {
               if (value.isNotEmpty) {
                 if (c.uuid == Guid(runesCharUuid)) {
-                  _runes = _bytesToInt(value);
+                  _playTimeMinutes = _bytesToInt(value);
                 } else if (c.uuid == Guid(hrCharUuid)) {
                   _heartRate = _bytesToInt(value);
                 } else if (c.uuid == Guid(stepsCharUuid)) {
@@ -352,7 +352,7 @@ class EcosystemState extends ChangeNotifier {
 
   void disconnectBLE() {
     _disconnectBLE();
-    _runes = 0;
+    _playTimeMinutes = 0;
     _heartRate = 0;
     _steps = 0;
     notifyListeners();
@@ -740,6 +740,7 @@ class WearableTab extends StatefulWidget {
 
 class _WearableTabState extends State<WearableTab> {
   late TextEditingController _serverUrlController;
+  bool _playTimeAlertShown = false;
 
   @override
   void initState() {
@@ -759,8 +760,13 @@ class _WearableTabState extends State<WearableTab> {
     final state = Provider.of<EcosystemState>(context);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (state.heartRate > 120 && state.bleState == BluetoothConnectionState.connected) {
+      if (state.heartRate > 120 && state.bleState == MyConnectionState.connected) {
         _showCriticalAlert(context, state.heartRate);
+      }
+      if (state.playTimeMinutes >= 120 && state.bleState == MyConnectionState.connected) {
+        _showPlayTimeAlert(context, state.playTimeMinutes);
+      } else if (state.playTimeMinutes == 0) {
+        _playTimeAlertShown = false;
       }
     });
 
@@ -943,9 +949,9 @@ class _WearableTabState extends State<WearableTab> {
             children: [
               Expanded(
                 child: _buildMetricCard(
-                  'Runas',
-                  '${state.runes}',
-                  Icons.toll,
+                  'Tiempo de Juego',
+                  _formatPlayTime(state.playTimeMinutes),
+                  Icons.timer,
                   const Color(0xFFC6A15B),
                 ),
               ),
@@ -970,17 +976,18 @@ class _WearableTabState extends State<WearableTab> {
           ),
           const SizedBox(height: 24),
 
-          if (state.bleState == BluetoothConnectionState.connected)
+          if (state.bleState == MyConnectionState.connected)
             ElevatedButton.icon(
               onPressed: () {
-                state.resetRunes();
+                state.resetPlayTime();
+                _playTimeAlertShown = false;
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Runas del Sinluz reiniciadas a cero.')),
+                  const SnackBar(content: Text('Contador de horas de juego reiniciado.')),
                 );
               },
               icon: const Icon(Icons.refresh, color: Colors.black),
               label: const Text(
-                'Muerte / Reiniciar Runas',
+                'Reiniciar Horas de Juego',
                 style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
               ),
               style: ElevatedButton.styleFrom(
@@ -1070,5 +1077,46 @@ class _WearableTabState extends State<WearableTab> {
         ),
       );
     });
+  }
+
+  void _showPlayTimeAlert(BuildContext context, int minutes) {
+    if (_playTimeAlertShown) return;
+    _playTimeAlertShown = true;
+
+    HapticFeedback.vibrate();
+    Future.delayed(const Duration(milliseconds: 300), () => HapticFeedback.vibrate());
+    Future.delayed(const Duration(milliseconds: 600), () => HapticFeedback.vibrate());
+
+    Future.microtask(() {
+      showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (ctx) => AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Colors.amber),
+              SizedBox(width: 8),
+              Text('ALERTA DE DESCANSO', style: TextStyle(color: Colors.amber, fontWeight: FontWeight.bold)),
+            ],
+          ),
+          content: Text(
+            '¡Atención, Sinluz! Has superado 2 horas de juego continuo en Elden Ring (Tiempo acumulado: ${_formatPlayTime(minutes)}).\n\nTe recomendamos tomar un descanso de 15 minutos, hidratarte y hacer estiramientos activos.',
+            style: const TextStyle(fontSize: 16),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Entendido', style: TextStyle(color: Color(0xFFC6A15B))),
+            ),
+          ],
+        ),
+      );
+    });
+  }
+
+  String _formatPlayTime(int minutes) {
+    final int hours = minutes ~/ 60;
+    final int mins = minutes % 60;
+    return '${hours}h ${mins}m';
   }
 }

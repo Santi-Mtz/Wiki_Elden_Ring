@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:ble_peripheral/ble_peripheral.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter/services.dart';
 
 // UUIDs constantes compartidas para BLE
 const String serviceUuid = "19b10000-e8f2-537e-4f6c-d104768a1214";
@@ -47,7 +48,7 @@ class _WearableDashboardState extends State<WearableDashboard> {
   bool _isGenerating = false;
   bool _isAdvertising = false;
 
-  int _runes = 0;
+  int _playTimeMinutes = 0;
   int _heartRate = 70;
   int _steps = 0;
 
@@ -138,13 +139,19 @@ class _WearableDashboardState extends State<WearableDashboard> {
       await BlePeripheral.stopAdvertising();
       setState(() {
         _isAdvertising = false;
-        _runes = 0;
+        _playTimeMinutes = 0;
         _heartRate = 70;
         _steps = 0;
       });
     } catch (e) {
       debugPrint('Error al detener publicidad BLE: $e');
     }
+  }
+
+  String _formatPlayTime(int minutes) {
+    final int hours = minutes ~/ 60;
+    final int mins = minutes % 60;
+    return '${hours}h ${mins}m';
   }
 
   void _toggleGenerator() {
@@ -157,12 +164,28 @@ class _WearableDashboardState extends State<WearableDashboard> {
         setState(() {
           _steps += (1 + (timer.tick % 2));
           _heartRate = 72 + (timer.tick % 50);
-          _runes += 100;
+          _playTimeMinutes += 10; // 10 minutos simulados por segundo real
         });
 
-        _notifyData(runesCharUuid, _runes);
+        _notifyData(runesCharUuid, _playTimeMinutes);
         _notifyData(hrCharUuid, _heartRate);
         _notifyData(stepsCharUuid, _steps);
+
+        // Alerta de descanso: 120 minutos (2 horas) o superior
+        if (_playTimeMinutes >= 120 && _playTimeMinutes % 30 == 0) {
+          HapticFeedback.vibrate();
+          Future.delayed(const Duration(milliseconds: 300), () => HapticFeedback.vibrate());
+
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('¡ALERTA DE DESCANSO! Has superado las 2h de juego.'),
+                backgroundColor: Colors.red,
+                duration: Duration(seconds: 2),
+              ),
+            );
+          }
+        }
       });
     } else {
       _sensorTimer?.cancel();
@@ -170,9 +193,9 @@ class _WearableDashboardState extends State<WearableDashboard> {
     }
   }
 
-  void _resetRunes() {
+  void _resetPlayTime() {
     setState(() {
-      _runes = 0;
+      _playTimeMinutes = 0;
     });
     _notifyData(runesCharUuid, 0);
   }
@@ -232,10 +255,9 @@ class _WearableDashboardState extends State<WearableDashboard> {
                   ),
                 ),
                 const SizedBox(height: 10),
-
                 Text(
-                  'Runas: $_runes',
-                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                  'Tiempo de Juego: ${_formatPlayTime(_playTimeMinutes)}',
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                 ),
                 Text(
                   'Pulso: $_heartRate lpm',
@@ -276,10 +298,10 @@ class _WearableDashboardState extends State<WearableDashboard> {
                     width: double.infinity,
                     height: 38,
                     child: TextButton.icon(
-                      onPressed: _resetRunes,
+                      onPressed: _resetPlayTime,
                       icon: const Icon(Icons.refresh, size: 14, color: Colors.grey),
                       label: const Text(
-                        'REINICIAR RUNAS',
+                        'REINICIAR TIEMPO',
                         style: TextStyle(color: Colors.grey, fontSize: 10, fontWeight: FontWeight.bold),
                       ),
                     ),

@@ -32,7 +32,11 @@ interface WeaponItem {
             <span class="tv-subtitle">Companion Mode v2.0</span>
           </div>
           <div style="display: flex; align-items: center;">
-            <button (click)="toggleViewMode()" class="tv-toggle-button">
+            <button 
+              (click)="toggleViewMode()" 
+              class="tv-toggle-button"
+              [class.tv-toggle-button-active]="headerFocused() && viewMode() === 'weapons'"
+            >
               <i class="pi" [class.pi-map]="viewMode() === 'weapons'" [class.pi-images]="viewMode() === 'map'"></i>
               {{ viewMode() === 'weapons' ? 'Ver Mapa (M)' : 'Ver Catálogo (M)' }}
             </button>
@@ -224,6 +228,11 @@ interface WeaponItem {
       background: #C6A15B;
       color: #000;
       box-shadow: 0 0 12px rgba(198, 161, 91, 0.4);
+    }
+    .tv-toggle-button-active {
+      background: #C6A15B !important;
+      color: #000000 !important;
+      box-shadow: 0 0 15px rgba(198, 161, 91, 0.6) !important;
     }
     .tv-toggle-button i {
       font-size: 1.1rem;
@@ -503,6 +512,7 @@ export class TvPage implements OnInit, OnDestroy {
   protected readonly weapons = signal<WeaponItem[]>([]);
   protected readonly focusedIndex = signal<number>(0);
   protected readonly selectedIndex = signal<number>(0);
+  protected readonly headerFocused = signal<boolean>(false);
 
   protected readonly currentTime = signal<string>('');
   protected readonly currentDate = signal<string>('');
@@ -741,7 +751,30 @@ export class TvPage implements OnInit, OnDestroy {
           break;
         case 'Backspace':
         case 'Escape':
-          this.zoomOut();
+          // Si ya está totalmente alejado (escala <= 1.0), el botón "BACK" del control remoto vuelve al catálogo
+          if (this.mapZoom() <= 1.0) {
+            this.toggleViewMode();
+          } else {
+            this.zoomOut();
+          }
+          event.preventDefault();
+          break;
+      }
+      return;
+    }
+
+    // Navegación enfocando los botones de la cabecera (Header)
+    if (this.headerFocused()) {
+      switch (event.key) {
+        case 'ArrowDown':
+          this.headerFocused.set(false);
+          this.focusedIndex.set(0);
+          event.preventDefault();
+          break;
+        case 'Enter':
+        case ' ':
+          this.toggleViewMode();
+          this.headerFocused.set(false);
           event.preventDefault();
           break;
       }
@@ -757,6 +790,9 @@ export class TvPage implements OnInit, OnDestroy {
       case 'ArrowUp':
         if (index >= 2) {
           index -= 2;
+        } else {
+          // Si presiona "arriba" estando en las tarjetas superiores (0 o 1), enfoca el botón del Header
+          this.headerFocused.set(true);
         }
         event.preventDefault();
         break;

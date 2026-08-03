@@ -484,7 +484,8 @@ interface WeaponItem {
     .tv-leaflet-container {
       flex: 1;
       width: 100%;
-      min-height: 0;
+      height: 480px;
+      min-height: 450px;
       border-radius: 12px;
       border: 2px solid rgba(198, 161, 91, 0.35);
       box-shadow: 0 0 25px rgba(198, 161, 91, 0.2);
@@ -584,7 +585,10 @@ export class TvPage implements OnInit, OnDestroy {
       this.loadLeaflet().then(() => {
         setTimeout(() => {
           this.initLeafletMap();
-        }, 100);
+          if (this.leafletMap) {
+            this.leafletMap.invalidateSize();
+          }
+        }, 150);
       });
     } else {
       if (this.leafletMap) {
@@ -599,16 +603,31 @@ export class TvPage implements OnInit, OnDestroy {
   private loadLeaflet(): Promise<void> {
     if (this.leafletLoaded) return Promise.resolve();
     return new Promise((resolve, reject) => {
+      let cssLoaded = false;
+      let jsLoaded = false;
+
+      const checkLoaded = () => {
+        if (cssLoaded && jsLoaded) {
+          this.leafletLoaded = true;
+          resolve();
+        }
+      };
+
       const link = document.createElement('link');
       link.rel = 'stylesheet';
       link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+      link.onload = () => {
+        cssLoaded = true;
+        checkLoaded();
+      };
+      link.onerror = (err) => reject(err);
       document.head.appendChild(link);
 
       const script = document.createElement('script');
       script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
       script.onload = () => {
-        this.leafletLoaded = true;
-        resolve();
+        jsLoaded = true;
+        checkLoaded();
       };
       script.onerror = (err) => reject(err);
       document.body.appendChild(script);
@@ -631,6 +650,9 @@ export class TvPage implements OnInit, OnDestroy {
     const bounds = [[0, 0], [1000, 1000]];
     L.imageOverlay('/assets/elden_ring_map.png', bounds).addTo(this.leafletMap);
     this.leafletMap.fitBounds(bounds);
+    
+    // Invalida tamaño inmediatamente para recalcular las dimensiones correctas de la caja
+    this.leafletMap.invalidateSize();
 
     this.markersList = [];
     this.allWeaponsList.forEach(weapon => {

@@ -1211,7 +1211,17 @@ app.get('/armas', async (req, res) => {
     }
 
     const resultado = await pool.query('SELECT a.*, t.nombre AS tipo FROM armas a LEFT JOIN tipos_arma t ON a.tipo_id = t.id');
-    res.json(resultado.rows);
+    const rowsWithDamage = resultado.rows.map(row => {
+      const rareza = Number(row.rareza || 1);
+      const peso = Number(row.peso || 0);
+      const calculatedDano = 80 + (rareza * 10) + Math.round(peso * 2.5);
+      return {
+        ...row,
+        dano_base: calculatedDano
+      };
+    });
+
+    res.json(rowsWithDamage);
   } catch (err) {
     console.error(err.message);
     res.status(500).send("Error en el servidor");

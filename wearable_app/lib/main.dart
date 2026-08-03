@@ -119,7 +119,7 @@ class _WearableDashboardState extends State<WearableDashboard> {
 
       await BlePeripheral.startAdvertising(
         services: [serviceUuid],
-        localName: 'AEGIS-Wearable',
+        localName: 'AEGIS',
       );
       
       setState(() {

@@ -40,18 +40,17 @@ Las dependencias y versiones configuradas en los archivos `pubspec.yaml` son:
 
 En lugar de emuladores, esta entrega utiliza dispositivos físicos reales para garantizar el comportamiento real de los sensores y la comunicación BLE.
 
-### 2.1 Teléfono Inteligente Físico (Android)
-*   **Modelo del Dispositivo**: Samsung Galaxy S23 (o equivalente físico del alumno)
-*   **API Level**: API 34 (Android 14.0)
-*   **Memoria RAM**: 8 GB
-*   **Características Adicionales**: Opciones de desarrollador activadas, Depuración por USB habilitada. Configurado en la misma red Wi-Fi que la PC para consumo de la API local.
+### 2.1 Dispositivo Móvil Físico
+*   **Modelo**: Samsung Galaxy Tab A8 (SM-X210)
+*   **Versión del Sistema**: Android 16 (API 36)
+*   **Memoria RAM**: 4 GB RAM
+*   **Conectividad**: Wi-Fi local (802.11ac) y Bluetooth Low Energy (BLE 5.0).
 
-### 2.2 Reloj Inteligente Wearable Físico (Wear OS)
-*   **Modelo del Dispositivo**: Samsung Galaxy Watch 5 (o equivalente Wear OS del alumno)
-*   **Forma de Pantalla**: Circular
-*   **API Level**: API 30 (Wear OS 3.0)
-*   **Memoria RAM**: 1.5 GB
-*   **Conectividad de Depuración**: Opciones de desarrollador activas en el reloj. Conexión de puente ADB establecida por Wi-Fi mediante comando `adb connect <IP_del_reloj>:5555` desde la terminal de la PC para instalar el APK compilado directamente desde Android Studio.
+### 2.2 Dispositivo Wearable / Emisor BLE Físico
+*   **Modelo**: Motorola Edge 60 Pro (Actuando como emisor simulador del wearable)
+*   **Versión del Sistema**: Android 16 (API 36)
+*   **Memoria RAM**: 12 GB RAM
+*   **Conectividad**: Bluetooth Low Energy (BLE 5.2, modo Peripheral GATT).
 
 ### 2.3 Simulación de Smart TV (Chrome DevTools)
 *   **Navegador**: Google Chrome (v126.0)

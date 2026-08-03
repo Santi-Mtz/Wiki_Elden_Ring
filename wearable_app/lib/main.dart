@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:flutter_ble_peripheral/flutter_ble_peripheral.dart';
+import 'package:ble_peripheral/ble_peripheral.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 // UUIDs constantes compartidas para BLE
 const String serviceUuid = "19b10000-e8f2-537e-4f6c-d104768a1214";
@@ -43,7 +44,6 @@ class WearableDashboard extends StatefulWidget {
 }
 
 class _WearableDashboardState extends State<WearableDashboard> {
-  final FlutterBlePeripheral _blePeripheral = FlutterBlePeripheral();
   bool _isGenerating = false;
   bool _isAdvertising = false;
 
@@ -62,25 +62,69 @@ class _WearableDashboardState extends State<WearableDashboard> {
   @override
   void dispose() {
     _sensorTimer?.cancel();
-    _blePeripheral.stop();
+    BlePeripheral.stopAdvertising();
     super.dispose();
   }
 
   Future<void> _initAdvertising() async {
-    final AdvertiseData advertiseData = AdvertiseData(
-      serviceUuid: serviceUuid,
-      localName: 'AEGIS-Wearable',
-      includeDeviceName: true,
-    );
-
     try {
-      if (await _blePeripheral.isSupported()) {
-        _blePeripheral.advertise(advertiseData).then((_) {
-          setState(() {
-            _isAdvertising = true;
-          });
-        });
-      }
+      // Solicitar permisos en tiempo de ejecución para Android 12+
+      await [
+        Permission.bluetoothAdvertise,
+        Permission.bluetoothConnect,
+        Permission.bluetoothScan,
+      ].request();
+
+      await BlePeripheral.initialize();
+      await BlePeripheral.clearServices();
+      
+      await BlePeripheral.addService(
+        BleService(
+          uuid: serviceUuid,
+          primary: true,
+          characteristics: [
+            BleCharacteristic(
+              uuid: runesCharUuid,
+              properties: [
+                CharacteristicProperties.read.index,
+                CharacteristicProperties.notify.index,
+              ],
+              permissions: [
+                AttributePermissions.readable.index,
+              ],
+            ),
+            BleCharacteristic(
+              uuid: hrCharUuid,
+              properties: [
+                CharacteristicProperties.read.index,
+                CharacteristicProperties.notify.index,
+              ],
+              permissions: [
+                AttributePermissions.readable.index,
+              ],
+            ),
+            BleCharacteristic(
+              uuid: stepsCharUuid,
+              properties: [
+                CharacteristicProperties.read.index,
+                CharacteristicProperties.notify.index,
+              ],
+              permissions: [
+                AttributePermissions.readable.index,
+              ],
+            ),
+          ],
+        ),
+      );
+
+      await BlePeripheral.startAdvertising(
+        services: [serviceUuid],
+        localName: 'AEGIS-Wearable',
+      );
+      
+      setState(() {
+        _isAdvertising = true;
+      });
     } catch (e) {
       debugPrint('Error al iniciar publicidad BLE en Wear OS: $e');
     }
@@ -118,8 +162,8 @@ class _WearableDashboardState extends State<WearableDashboard> {
 
   void _notifyData(String charUuid, int value) {
     final bytes = _intToBytes(value);
-    _blePeripheral.updateCharacteristic(
-      characteristicUuid: charUuid,
+    BlePeripheral.updateCharacteristic(
+      characteristicId: charUuid,
       value: bytes,
     );
   }

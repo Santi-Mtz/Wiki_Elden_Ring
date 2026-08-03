@@ -53,6 +53,12 @@ class AegisApp extends StatelessWidget {
   }
 }
 
+enum MyConnectionState {
+  disconnected,
+  connecting,
+  connected,
+}
+
 // ESTADO GLOBAL DE LA APLICACION (Provider)
 class EcosystemState extends ChangeNotifier {
   String? _token;
@@ -61,7 +67,7 @@ class EcosystemState extends ChangeNotifier {
   String _activeServerUrl = "https://aegis-wiki-backend.onrender.com";
 
   // BLE States
-  BluetoothConnectionState _bleState = BluetoothConnectionState.disconnected;
+  MyConnectionState _bleState = MyConnectionState.disconnected;
   BluetoothDevice? _connectedDevice;
   int _runes = 0;
   int _heartRate = 0;
@@ -78,7 +84,7 @@ class EcosystemState extends ChangeNotifier {
   String? get token => _token;
   Map<String, dynamic>? get user => _user;
   List<dynamic> get weapons => _weapons;
-  BluetoothConnectionState get bleState => _bleState;
+  MyConnectionState get bleState => _bleState;
   int get runes => _runes;
   int get heartRate => _heartRate;
   int get steps => _steps;
@@ -192,7 +198,7 @@ class EcosystemState extends ChangeNotifier {
   }
 
   void _startSimulation() {
-    _bleState = BluetoothConnectionState.connected;
+    _bleState = MyConnectionState.connected;
     _simulatorTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       _steps += (1 + (timer.tick % 3));
       _heartRate = 75 + (timer.tick % 55);
@@ -204,7 +210,7 @@ class EcosystemState extends ChangeNotifier {
   void _stopSimulation() {
     _simulatorTimer?.cancel();
     _simulatorTimer = null;
-    _bleState = BluetoothConnectionState.disconnected;
+    _bleState = MyConnectionState.disconnected;
     _runes = 0;
     _heartRate = 0;
     _steps = 0;
@@ -226,7 +232,7 @@ class EcosystemState extends ChangeNotifier {
       return;
     }
 
-    _bleState = BluetoothConnectionState.disconnected;
+    _bleState = MyConnectionState.disconnected;
     notifyListeners();
 
     try {
@@ -251,18 +257,20 @@ class EcosystemState extends ChangeNotifier {
   }
 
   Future<void> _connectToDevice(BluetoothDevice device) async {
-    _bleState = BluetoothConnectionState.connecting;
+    _bleState = MyConnectionState.connecting;
     notifyListeners();
 
     try {
-      await device.connect();
+      await device.connect(license: License.nonprofit);
       _connectedDevice = device;
-      _bleState = BluetoothConnectionState.connected;
+      _bleState = MyConnectionState.connected;
       notifyListeners();
 
       device.connectionState.listen((state) {
-        _bleState = state;
-        if (state == BluetoothConnectionState.disconnected) {
+        if (state == BluetoothConnectionState.connected) {
+          _bleState = MyConnectionState.connected;
+        } else {
+          _bleState = MyConnectionState.disconnected;
           _connectedDevice = null;
           _runes = 0;
           _heartRate = 0;
@@ -292,7 +300,7 @@ class EcosystemState extends ChangeNotifier {
         }
       }
     } catch (e) {
-      _bleState = BluetoothConnectionState.disconnected;
+      _bleState = MyConnectionState.disconnected;
       _connectedDevice = null;
       notifyListeners();
     }
@@ -301,7 +309,7 @@ class EcosystemState extends ChangeNotifier {
   void _disconnectBLE() {
     _connectedDevice?.disconnect();
     _connectedDevice = null;
-    _bleState = BluetoothConnectionState.disconnected;
+    _bleState = MyConnectionState.disconnected;
   }
 
   int _bytesToInt(List<int> bytes) {
@@ -415,12 +423,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   fontWeight: FontWeight.bold,
                   color: Color(0xFFC6A15B),
                 ),
-                textAlign: Alignment.center,
+                textAlign: TextAlign.center,
               ),
               const Text(
                 'Ecosistema Móvil y Sincronización',
                 style: TextStyle(color: Colors.grey),
-                textAlign: Alignment.center,
+                textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),
               Card(
@@ -489,12 +497,12 @@ class _LoginScreenState extends State<LoginScreen> {
               if (_error != null)
                 Container(
                   padding: const EdgeInsets.all(12),
-                  margin: const EdgeInsets.bottom(16),
+                  margin: const EdgeInsets.only(bottom: 16),
                   color: const Color(0xFF9A2A2A).withOpacity(0.3),
                   child: Text(
                     _error!,
                     style: const TextStyle(color: Colors.redAccent),
-                    textAlign: Alignment.center,
+                    textAlign: TextAlign.center,
                   ),
                 ),
               TextField(
@@ -781,7 +789,7 @@ class _WearableTabState extends State<WearableTab> {
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.between,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -815,7 +823,7 @@ class _WearableTabState extends State<WearableTab> {
               border: Border.all(color: _getBleStateColor(state.bleState)),
             ),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.between,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Row(
                   children: [
@@ -830,13 +838,13 @@ class _WearableTabState extends State<WearableTab> {
                     ),
                   ],
                 ),
-                if (!state.isSimulating && state.bleState == BluetoothConnectionState.disconnected)
+                if (!state.isSimulating && state.bleState == MyConnectionState.disconnected)
                   ElevatedButton(
                     onPressed: () => state.startBLEScan(context),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFC6A15B),
                       foregroundColor: Colors.black,
-                      size: const Size(100, 36),
+                      fixedSize: const Size(100, 36),
                     ),
                     child: const Text('Conectar'),
                   ),
@@ -848,7 +856,7 @@ class _WearableTabState extends State<WearableTab> {
           const Text(
             'Métricas del Portador',
             style: TextStyle(fontFamily: 'Cinzel', fontSize: 20, color: Color(0xFFC6A15B)),
-            textAlign: Alignment.center,
+            textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
 
@@ -927,37 +935,37 @@ class _WearableTabState extends State<WearableTab> {
     );
   }
 
-  Color _getBleStateColor(BluetoothConnectionState state) {
+  Color _getBleStateColor(MyConnectionState state) {
     switch (state) {
-      case BluetoothConnectionState.connected:
+      case MyConnectionState.connected:
         return Colors.green;
-      case BluetoothConnectionState.connecting:
+      case MyConnectionState.connecting:
         return Colors.orange;
-      case BluetoothConnectionState.disconnected:
+      case MyConnectionState.disconnected:
       default:
         return Colors.red;
     }
   }
 
-  IconData _getBleStateIcon(BluetoothConnectionState state) {
+  IconData _getBleStateIcon(MyConnectionState state) {
     switch (state) {
-      case BluetoothConnectionState.connected:
+      case MyConnectionState.connected:
         return Icons.bluetooth_connected;
-      case BluetoothConnectionState.connecting:
+      case MyConnectionState.connecting:
         return Icons.bluetooth_searching;
-      case BluetoothConnectionState.disconnected:
+      case MyConnectionState.disconnected:
       default:
         return Icons.bluetooth_disabled;
     }
   }
 
-  String _getBleStateText(BluetoothConnectionState state) {
+  String _getBleStateText(MyConnectionState state) {
     switch (state) {
-      case BluetoothConnectionState.connected:
+      case MyConnectionState.connected:
         return "Conectado al Reloj";
-      case BluetoothConnectionState.connecting:
+      case MyConnectionState.connecting:
         return "Conectando...";
-      case BluetoothConnectionState.disconnected:
+      case MyConnectionState.disconnected:
       default:
         return "Reloj Desconectado";
     }

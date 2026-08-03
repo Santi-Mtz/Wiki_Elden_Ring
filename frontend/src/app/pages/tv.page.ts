@@ -495,8 +495,10 @@ export class TvPage implements OnInit, OnDestroy {
   }
 
   private setupSSESync() {
-    // Sincronización Server-Sent Events (SSE) en tiempo real
-    this.eventSource = new EventSource('/api/sync/subscribe');
+    const sseUrl = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+      ? '/api/sync/subscribe'
+      : 'https://aegis-wiki-backend.onrender.com/sync/subscribe';
+    this.eventSource = new EventSource(sseUrl);
 
     this.eventSource.onmessage = (event) => {
       try {

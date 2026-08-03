@@ -252,19 +252,20 @@ class _WearableDashboardState extends State<WearableDashboard> {
 
                 SizedBox(
                   width: double.infinity,
-                  height: 48,
-                  child: ElevatedButton(
+                  height: 40,
+                  child: ElevatedButton.icon(
                     onPressed: _toggleGenerator,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _isGenerating ? const Color(0xFF9A2A2A) : const Color(0xFFC6A15B),
-                      foregroundColor: Colors.black,
+                      foregroundColor: _isGenerating ? Colors.white : Colors.black,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),
                     ),
-                    child: Text(
-                      _isGenerating ? 'DETENER' : 'INICIAR SENSORES',
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11),
+                    icon: Icon(_isGenerating ? Icons.pause : Icons.play_arrow, size: 16),
+                    label: Text(
+                      _isGenerating ? 'PAUSAR SENSORES' : 'INICIAR SENSORES',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 10),
                     ),
                   ),
                 ),
@@ -286,19 +287,20 @@ class _WearableDashboardState extends State<WearableDashboard> {
                 const SizedBox(height: 6),
                 SizedBox(
                   width: double.infinity,
-                  height: 38,
-                  child: ElevatedButton(
+                  height: 40,
+                  child: ElevatedButton.icon(
                     onPressed: _isAdvertising ? _stopAdvertising : _initAdvertising,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _isAdvertising ? const Color(0xFF9A2A2A) : const Color(0xFFC6A15B),
-                      foregroundColor: Colors.white,
+                      backgroundColor: _isAdvertising ? const Color(0xFF801A1A) : const Color(0xFFC6A15B),
+                      foregroundColor: _isAdvertising ? Colors.white : Colors.black,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),
                     ),
-                    child: Text(
-                      _isAdvertising ? 'APAGAR BLE' : 'ENCENDER BLE',
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 10, color: Colors.white),
+                    icon: Icon(_isAdvertising ? Icons.bluetooth_disabled : Icons.bluetooth, size: 14),
+                    label: Text(
+                      _isAdvertising ? 'DETENER EMISIÓN' : 'EMITIR BLE',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 10),
                     ),
                   ),
                 ),

@@ -884,26 +884,49 @@ class _WearableTabState extends State<WearableTab> {
                     ),
                   ],
                 ),
-                if (!state.isSimulating && state.bleState == MyConnectionState.disconnected)
-                   ElevatedButton(
-                     onPressed: () => state.startBLEScan(context),
-                     style: ElevatedButton.styleFrom(
-                       backgroundColor: const Color(0xFFC6A15B),
-                       foregroundColor: Colors.black,
-                       fixedSize: const Size(100, 36),
-                     ),
-                     child: const Text('Conectar'),
-                   )
-                else if (!state.isSimulating && state.bleState == MyConnectionState.connected)
-                   ElevatedButton(
-                     onPressed: () => state.disconnectBLE(),
-                     style: ElevatedButton.styleFrom(
-                       backgroundColor: Colors.red[800],
-                       foregroundColor: Colors.white,
-                       fixedSize: const Size(120, 36),
-                     ),
-                     child: const Text('Desconectar'),
-                   ),
+                if (!state.isSimulating) ...[
+                  if (state.bleState == MyConnectionState.disconnected)
+                    ElevatedButton.icon(
+                      onPressed: () => state.startBLEScan(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFC6A15B),
+                        foregroundColor: Colors.black,
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      ),
+                      icon: const Icon(Icons.bluetooth_searching, size: 16),
+                      label: const Text('Buscar Reloj'),
+                    )
+                  else if (state.bleState == MyConnectionState.connecting)
+                    ElevatedButton.icon(
+                      onPressed: null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.grey[800],
+                        disabledBackgroundColor: Colors.grey[900],
+                        disabledForegroundColor: Colors.grey,
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      ),
+                      icon: const SizedBox(
+                        width: 14,
+                        height: 14,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      label: const Text('Buscando...'),
+                    )
+                  else if (state.bleState == MyConnectionState.connected)
+                    ElevatedButton.icon(
+                      onPressed: () => state.disconnectBLE(),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red[900],
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      ),
+                      icon: const Icon(Icons.bluetooth_disabled, size: 16),
+                      label: const Text('Desconectar'),
+                    ),
+                ],
               ],
             ),
           ),

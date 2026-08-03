@@ -130,6 +130,23 @@ class _WearableDashboardState extends State<WearableDashboard> {
     }
   }
 
+  Future<void> _stopAdvertising() async {
+    try {
+      if (_isGenerating) {
+        _toggleGenerator();
+      }
+      await BlePeripheral.stopAdvertising();
+      setState(() {
+        _isAdvertising = false;
+        _runes = 0;
+        _heartRate = 70;
+        _steps = 0;
+      });
+    } catch (e) {
+      debugPrint('Error al detener publicidad BLE: $e');
+    }
+  }
+
   void _toggleGenerator() {
     setState(() {
       _isGenerating = !_isGenerating;
@@ -266,6 +283,25 @@ class _WearableDashboardState extends State<WearableDashboard> {
                       ),
                     ),
                   ),
+                const SizedBox(height: 6),
+                SizedBox(
+                  width: double.infinity,
+                  height: 38,
+                  child: ElevatedButton(
+                    onPressed: _isAdvertising ? _stopAdvertising : _initAdvertising,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _isAdvertising ? const Color(0xFF9A2A2A) : const Color(0xFFC6A15B),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                    child: Text(
+                      _isAdvertising ? 'APAGAR BLE' : 'ENCENDER BLE',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 10, color: Colors.white),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),

@@ -1210,7 +1210,7 @@ app.get('/armas', async (req, res) => {
       return res.json([]);
     }
 
-    const resultado = await pool.query('SELECT * FROM armas');
+    const resultado = await pool.query('SELECT a.*, t.nombre AS tipo FROM armas a LEFT JOIN tipos_arma t ON a.tipo_id = t.id');
     res.json(resultado.rows);
   } catch (err) {
     console.error(err.message);

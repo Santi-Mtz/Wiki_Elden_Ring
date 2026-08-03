@@ -114,7 +114,7 @@ interface WeaponItem {
           <!-- Modo Mapa Interactivo (Alta Resolución) -->
           <div class="tv-map-panel">
             <img 
-              src="https://images.squarespace-cdn.com/content/v1/5c1a8d055417fc99577553f1/e9e30a5c-fbf8-460d-a773-7cb73a5a8f67/Elden+Ring+World+Map.jpg" 
+              src="/assets/elden_ring_map.png" 
               alt="Elden Ring World Map"
               style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 16px; box-shadow: 0 0 30px rgba(198, 161, 91, 0.45);"
             />

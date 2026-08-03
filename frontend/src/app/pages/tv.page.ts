@@ -111,13 +111,9 @@ interface WeaponItem {
             </div>
           </div>
         } @else {
-          <!-- Modo Mapa Interactivo -->
+          <!-- Modo Mapa Interactivo (Alta Resolución) -->
           <div class="tv-map-panel">
-            <iframe
-              src="https://mapgenie.io/elden-ring/maps/the-lands-between?embed=light"
-              title="Mapa interactivo de Elden Ring"
-              style="width: 100%; height: 100%; border: 0; border-radius: 16px; box-shadow: 0 0 30px rgba(198, 161, 91, 0.45);"
-            ></iframe>
+            <div style="background-image: url('https://images.squarespace-cdn.com/content/v1/5c1a8d055417fc99577553f1/e9e30a5c-fbf8-460d-a773-7cb73a5a8f67/Elden+Ring+World+Map.jpg'); background-size: contain; background-position: center; background-repeat: no-repeat; width: 100%; height: 100%; border-radius: 16px; box-shadow: 0 0 30px rgba(198, 161, 91, 0.45);"></div>
           </div>
         }
       </div>
@@ -250,25 +246,10 @@ interface WeaponItem {
     .tv-2x2-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
+      grid-template-rows: repeat(2, 1fr);
       gap: 25px;
       flex-grow: 1;
-      max-height: 520px;
-      overflow-y: auto;
-      padding-right: 12px;
-    }
-    .tv-2x2-grid::-webkit-scrollbar {
-      width: 8px;
-    }
-    .tv-2x2-grid::-webkit-scrollbar-track {
-      background: rgba(255, 255, 255, 0.02);
-      border-radius: 4px;
-    }
-    .tv-2x2-grid::-webkit-scrollbar-thumb {
-      background: rgba(198, 161, 91, 0.3);
-      border-radius: 4px;
-    }
-    .tv-2x2-grid::-webkit-scrollbar-thumb:hover {
-      background: rgba(198, 161, 91, 0.6);
+      max-height: 480px;
     }
 
     .tv-card {
@@ -440,6 +421,7 @@ export class TvPage implements OnInit, OnDestroy {
     this.viewMode.set(this.viewMode() === 'weapons' ? 'map' : 'weapons');
   }
 
+  private allWeaponsList: WeaponItem[] = [];
   private eventSource: EventSource | null = null;
   private clockInterval: any;
 
@@ -488,16 +470,33 @@ export class TvPage implements OnInit, OnDestroy {
   private loadWeapons() {
     this.http.get<WeaponItem[]>('/api/armas').subscribe({
       next: (data) => {
-        this.weapons.set(data);
-        if (data.length > 0) {
-          this.selectedIndex.set(0);
-          // Guardar en cache local para offline y auditoría de retención de datos
-          try {
-            localStorage.setItem('aegis_weapons_cache', JSON.stringify(data));
-            localStorage.setItem('aegis_cache_time_weapons', Date.now().toString());
-          } catch(e) {
-            console.error('Error al guardar en cache local:', e);
+        this.allWeaponsList = data;
+        
+        // Cargar el grid inicial desde caché si existe, sino tomar las primeras 4
+        let initialGrid: WeaponItem[] = [];
+        try {
+          const cachedGrid = localStorage.getItem('aegis_weapons_cache_grid');
+          if (cachedGrid) {
+            initialGrid = JSON.parse(cachedGrid);
           }
+        } catch (e) {}
+
+        if (initialGrid.length < 4) {
+          initialGrid = data.slice(0, 4);
+        }
+
+        this.weapons.set(initialGrid);
+        if (initialGrid.length > 0) {
+          this.selectedIndex.set(0);
+          this.focusedIndex.set(0);
+        }
+
+        // Guardar el listado completo en caché
+        try {
+          localStorage.setItem('aegis_weapons_cache', JSON.stringify(data));
+          localStorage.setItem('aegis_cache_time_weapons', Date.now().toString());
+        } catch(e) {
+          console.error('Error al guardar en cache local:', e);
         }
       },
       error: (err) => {
@@ -507,10 +506,10 @@ export class TvPage implements OnInit, OnDestroy {
           const cached = localStorage.getItem('aegis_weapons_cache');
           if (cached) {
             const weaponsData = JSON.parse(cached);
-            this.weapons.set(weaponsData);
-            if (weaponsData.length > 0) {
-              this.selectedIndex.set(0);
-            }
+            this.allWeaponsList = weaponsData;
+            this.weapons.set(weaponsData.slice(0, 4));
+            this.selectedIndex.set(0);
+            this.focusedIndex.set(0);
             return;
           }
         } catch(e) {
@@ -518,12 +517,14 @@ export class TvPage implements OnInit, OnDestroy {
         }
 
         // Fallback local hardcodeado si no hay caché disponible
-        this.weapons.set([
-          { id: 1, nombre: 'Uchigatana', tipo: 'Katanas', dano_base: 115, escalado: 'Fuerza D, Destreza D', descripcion: 'Espada de hoja curva y un solo filo de la Tierra de los Juncos. Un arma única conocida por sus cortes rápidos y el efecto de sangrado pasivo.' },
-          { id: 2, nombre: 'Espada de la Noche y la Llama', tipo: 'Espadas Rectas', dano_base: 124, escalado: 'Fuerza E, Destreza E, Fe D, Int D', descripcion: 'Espada legendaria guardada en el Caria Manor. Forjada con llamas y magia estelar nocturna, permite liberar ataques mágicos devastadores.' },
-          { id: 3, nombre: 'Velo Lunar (Moonveil)', tipo: 'Katanas', dano_base: 118, escalado: 'Destreza D, Inteligencia C', descripcion: 'Katana forjada con piedra centellante. Su hoja de luz azulada corta a través del aire proyectando una onda de energía mágica silenciosa.' },
-          { id: 4, nombre: 'Espadón de la Ruina', tipo: 'Armas Colosales', dano_base: 124, escalado: 'Fuerza C, Inteligencia E', descripcion: 'Una colosal espada de piedra nacida de las ruinas caídas del cielo. Libera ondas gravitatorias que aplastan a múltiples enemigos.' }
-        ]);
+        const fallback = [
+          { id: 2, nombre: 'Uchigatana', tipo: 'Katanas', dano_base: 124, escalado: 'Fuerza D, Destreza D', descripcion: 'Espada de hoja curva y un solo filo de la Tierra de los Juncos. Un arma única conocida por sus cortes rápidos y el efecto de sangrado pasivo.' },
+          { id: 11, nombre: 'Longsword', tipo: 'Espadas Rectas', dano_base: 109, escalado: 'Fuerza D, Destreza D', descripcion: 'Espada recta equilibrada para cualquier build.' },
+          { id: 4, nombre: 'Moonveil', tipo: 'Katanas', dano_base: 146, escalado: 'Destreza D, Inteligencia C', descripcion: 'Katana forjada con piedra centellante. Su hoja de luz azulada corta a través del aire proyectando una onda de energía mágica silenciosa.' },
+          { id: 14, nombre: 'Giant-Crusher', tipo: 'Armas Colosales', dano_base: 196, escalado: 'Fuerza C, Inteligencia E', descripcion: 'Una colosal espada de piedra nacida de las ruinas caídas del cielo. Libera ondas gravitatorias que aplastan a múltiples enemigos.' }
+        ];
+        this.allWeaponsList = fallback;
+        this.weapons.set(fallback);
       }
     });
   }
@@ -549,19 +550,7 @@ export class TvPage implements OnInit, OnDestroy {
         // Si los datos son válidos, los procesamos
         if (event.data && event.data.event === 'weapon-select') {
           const weaponId = Number(event.data.id);
-          const list = this.weapons();
-          const foundIdx = list.findIndex(w => w.id === weaponId);
-          if (foundIdx > -1) {
-            this.selectedIndex.set(foundIdx);
-            this.focusedIndex.set(foundIdx);
-            this.viewMode.set('weapons');
-            setTimeout(() => {
-              const element = document.querySelector('.tv-card-selected');
-              if (element) {
-                element.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-              }
-            }, 50);
-          }
+          this.selectWeaponById(weaponId);
         } else if (event.data && event.data.event === 'view-mode') {
           const mode = event.data.data?.mode === 'map' ? 'map' : 'weapons';
           this.viewMode.set(mode);
@@ -583,19 +572,7 @@ export class TvPage implements OnInit, OnDestroy {
         const payload = JSON.parse(event.data);
         if (payload.event === 'weapon-select') {
           const weaponId = Number(payload.data?.id);
-          const list = this.weapons();
-          const foundIdx = list.findIndex(w => w.id === weaponId);
-          if (foundIdx > -1) {
-            this.selectedIndex.set(foundIdx);
-            this.focusedIndex.set(foundIdx);
-            this.viewMode.set('weapons');
-            setTimeout(() => {
-              const element = document.querySelector('.tv-card-selected');
-              if (element) {
-                element.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-              }
-            }, 50);
-          }
+          this.selectWeaponById(weaponId);
         } else if (payload.event === 'view-mode') {
           const mode = payload.data?.mode === 'map' ? 'map' : 'weapons';
           this.viewMode.set(mode);
@@ -665,16 +642,44 @@ export class TvPage implements OnInit, OnDestroy {
         break;
     }
 
-    // Lógica de límites y auto-scroll
+    // Lógica de límites
     if (index >= 0 && index < list.length) {
       this.focusedIndex.set(index);
-      setTimeout(() => {
-        const element = document.querySelector('.tv-card-active');
-        if (element) {
-          element.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-        }
-      }, 50);
     }
+  }
+
+  private selectWeaponById(weaponId: number) {
+    const fullList = this.allWeaponsList;
+    const weapon = fullList.find(w => w.id === weaponId);
+    if (!weapon) return;
+
+    const currentGrid = [...this.weapons()];
+    const existingIdx = currentGrid.findIndex(w => w.id === weaponId);
+
+    if (existingIdx > -1) {
+      // Mover al inicio del grid como más reciente
+      currentGrid.splice(existingIdx, 1);
+      currentGrid.unshift(weapon);
+      this.weapons.set(currentGrid);
+      this.selectedIndex.set(0);
+      this.focusedIndex.set(0);
+    } else {
+      // Reemplazar la última (más antigua)
+      if (currentGrid.length >= 4) {
+        currentGrid.pop();
+      }
+      currentGrid.unshift(weapon);
+      this.weapons.set(currentGrid);
+      this.selectedIndex.set(0);
+      this.focusedIndex.set(0);
+    }
+
+    this.viewMode.set('weapons'); // Forzar vista de armas en TV al proyectar
+
+    // Guardar grid en caché local
+    try {
+      localStorage.setItem('aegis_weapons_cache_grid', JSON.stringify(currentGrid));
+    } catch (e) {}
   }
 
   protected selectIndex(idx: number) {

@@ -111,13 +111,25 @@ interface WeaponItem {
             </div>
           </div>
         } @else {
-          <!-- Modo Mapa Interactivo (Alta Resolución) -->
-          <div class="tv-map-panel">
-            <img 
-              src="/assets/elden_ring_map.png" 
-              alt="Elden Ring World Map"
-              style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 16px; box-shadow: 0 0 30px rgba(198, 161, 91, 0.45);"
-            />
+          <!-- Modo Mapa Interactivo (Nativo y Zoomable) -->
+          <div class="tv-map-container">
+            <div class="tv-map-wrapper" [style.transform]="'translate(' + mapPanX() + 'px, ' + mapPanY() + 'px) scale(' + mapZoom() + ')'">
+              <img 
+                src="/assets/elden_ring_map.png" 
+                alt="Elden Ring World Map"
+                class="tv-map-image"
+              />
+            </div>
+            
+            <!-- Controles flotantes de la TV -->
+            <div class="map-controls">
+              <button (click)="zoomIn()" class="map-btn" title="Acercar"><i class="pi pi-plus"></i></button>
+              <button (click)="zoomOut()" class="map-btn" title="Alejar"><i class="pi pi-minus"></i></button>
+              <button (click)="resetMap()" class="map-btn" title="Centrar"><i class="pi pi-refresh"></i></button>
+            </div>
+            <div class="map-instructions">
+              <span><i class="pi pi-directions"></i> Flechas del control para explorar el mapa | ENTER para Zoom | BACK para Alejar</span>
+            </div>
           </div>
         }
       </div>
@@ -217,15 +229,86 @@ interface WeaponItem {
       font-size: 1.1rem;
     }
 
-    .tv-map-panel {
+    .tv-map-container {
       flex: 1;
       width: 100%;
       min-height: 0;
+      position: relative;
+      overflow: hidden;
+      border-radius: 16px;
+      box-shadow: 0 0 30px rgba(198, 161, 91, 0.45);
+      background: #09090b;
       display: flex;
       justify-content: center;
       align-items: center;
-      box-sizing: border-box;
-      padding-bottom: 20px;
+      border: 1px solid rgba(198, 161, 91, 0.15);
+    }
+
+    .tv-map-wrapper {
+      transition: transform 0.15s cubic-bezier(0.25, 0.8, 0.25, 1);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+    }
+
+    .tv-map-image {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      user-select: none;
+      pointer-events: none;
+    }
+
+    .map-controls {
+      position: absolute;
+      bottom: 30px;
+      right: 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      z-index: 10;
+    }
+
+    .map-btn {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      background: rgba(20, 20, 25, 0.85);
+      border: 2px solid #C6A15B;
+      color: #C6A15B;
+      font-size: 1.3rem;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: all 0.25s ease;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    }
+
+    .map-btn:hover {
+      background: #C6A15B;
+      color: #000;
+      transform: scale(1.1);
+    }
+
+    .map-instructions {
+      position: absolute;
+      bottom: 30px;
+      left: 30px;
+      background: rgba(20, 20, 25, 0.85);
+      border: 1.5px solid rgba(198, 161, 91, 0.35);
+      padding: 10px 20px;
+      border-radius: 30px;
+      color: #cbd5e1;
+      font-size: 1.15rem;
+      font-weight: 500;
+      z-index: 10;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
     .tv-content-grid {
@@ -424,8 +507,29 @@ export class TvPage implements OnInit, OnDestroy {
   protected readonly currentDate = signal<string>('');
   protected readonly viewMode = signal<'weapons' | 'map'>('weapons');
 
+  protected readonly mapZoom = signal<number>(1.0);
+  protected readonly mapPanX = signal<number>(0);
+  protected readonly mapPanY = signal<number>(0);
+
   protected toggleViewMode() {
     this.viewMode.set(this.viewMode() === 'weapons' ? 'map' : 'weapons');
+    if (this.viewMode() === 'map') {
+      this.resetMap();
+    }
+  }
+
+  protected zoomIn() {
+    this.mapZoom.update(z => Math.min(z + 0.25, 4.0));
+  }
+
+  protected zoomOut() {
+    this.mapZoom.update(z => Math.max(z - 0.25, 0.75));
+  }
+
+  protected resetMap() {
+    this.mapZoom.set(1.0);
+    this.mapPanX.set(0);
+    this.mapPanY.set(0);
   }
 
   private allWeaponsList: WeaponItem[] = [];
@@ -610,7 +714,38 @@ export class TvPage implements OnInit, OnDestroy {
       return;
     }
 
-    if (this.viewMode() !== 'weapons') return;
+    if (this.viewMode() === 'map') {
+      const step = 80;
+      switch (event.key) {
+        case 'ArrowUp':
+          this.mapPanY.update(y => y + step);
+          event.preventDefault();
+          break;
+        case 'ArrowDown':
+          this.mapPanY.update(y => y - step);
+          event.preventDefault();
+          break;
+        case 'ArrowLeft':
+          this.mapPanX.update(x => x + step);
+          event.preventDefault();
+          break;
+        case 'ArrowRight':
+          this.mapPanX.update(x => x - step);
+          event.preventDefault();
+          break;
+        case 'Enter':
+        case ' ':
+          this.zoomIn();
+          event.preventDefault();
+          break;
+        case 'Backspace':
+        case 'Escape':
+          this.zoomOut();
+          event.preventDefault();
+          break;
+      }
+      return;
+    }
 
     const list = this.weapons();
     if (list.length === 0) return;

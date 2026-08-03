@@ -350,6 +350,14 @@ class EcosystemState extends ChangeNotifier {
     _bleState = MyConnectionState.disconnected;
   }
 
+  void disconnectBLE() {
+    _disconnectBLE();
+    _runes = 0;
+    _heartRate = 0;
+    _steps = 0;
+    notifyListeners();
+  }
+
   int _bytesToInt(List<int> bytes) {
     int val = 0;
     for (int i = 0; i < bytes.length; i++) {
@@ -877,15 +885,25 @@ class _WearableTabState extends State<WearableTab> {
                   ],
                 ),
                 if (!state.isSimulating && state.bleState == MyConnectionState.disconnected)
-                  ElevatedButton(
-                    onPressed: () => state.startBLEScan(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFC6A15B),
-                      foregroundColor: Colors.black,
-                      fixedSize: const Size(100, 36),
-                    ),
-                    child: const Text('Conectar'),
-                  ),
+                   ElevatedButton(
+                     onPressed: () => state.startBLEScan(context),
+                     style: ElevatedButton.styleFrom(
+                       backgroundColor: const Color(0xFFC6A15B),
+                       foregroundColor: Colors.black,
+                       fixedSize: const Size(100, 36),
+                     ),
+                     child: const Text('Conectar'),
+                   )
+                else if (!state.isSimulating && state.bleState == MyConnectionState.connected)
+                   ElevatedButton(
+                     onPressed: () => state.disconnectBLE(),
+                     style: ElevatedButton.styleFrom(
+                       backgroundColor: Colors.red[800],
+                       foregroundColor: Colors.white,
+                       fixedSize: const Size(120, 36),
+                     ),
+                     child: const Text('Desconectar'),
+                   ),
               ],
             ),
           ),

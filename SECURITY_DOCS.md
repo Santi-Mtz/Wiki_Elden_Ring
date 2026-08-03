@@ -27,7 +27,7 @@ El sistema procesa y almacena únicamente los siguientes datos personales:
 Los datos personales recabados serán utilizados exclusivamente para:
 *   Evaluar el funcionamiento del inicio de sesión único (SSO) en múltiples pantallas.
 *   Establecer canal seguro de comunicación (SSE/Bluetooth).
-*   Sincronizar las estadísticas del portador (ritmo cardíaco, runas) entre el wearable, teléfono y Smart TV.
+*   Sincronizar las estadísticas del portador (ritmo cardíaco, horas de juego) entre el wearable, teléfono y Smart TV.
 
 **Derechos ARCO (Acceso, Rectificación, Cancelación y Oposición)**:
 El usuario puede solicitar en cualquier momento el acceso a sus datos de bitácora, la rectificación de su nombre de perfil, la cancelación de su cuenta o la oposición al procesamiento. En esta plataforma académica, el usuario puede ejercer estos derechos enviando un correo al administrador o eliminando su cuenta de forma directa a través del módulo de autogestión.

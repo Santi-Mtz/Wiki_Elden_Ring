@@ -75,9 +75,9 @@ En lugar de emuladores, esta entrega utiliza dispositivos físicos reales para g
 | **TC-01** | API Backend | Consumo de datos reales del catálogo de armas mediante `/api/armas`. | El servidor responde un JSON con el catálogo de armas de Elden Ring. | **PASS** |
 | **TC-02** | Teléfono | Inicio de sesión seguro con JWT contra la base de datos de Express. | El usuario inicia sesión y se almacena el token JWT de forma segura. | **PASS** |
 | **TC-03** | Teléfono | Manejo de error de red si el backend principal en Render no responde. | La app activa el fallback automático a `localhost:3000` sin crashear. | **PASS** |
-| **TC-04** | Wearable | Emisión de datos dinámicos (pasos, ritmo y runas) vía notificaciones BLE. | El reloj publicita el `serviceUuid` y transmite payloads optimizados de bytes. | **PASS** |
-| **TC-05** | Teléfono | Recepción y parseo de bytes de notificaciones BLE del reloj. | La app móvil se suscribe con `setNotifyValue(true)` y muestra las runas/pasos. | **PASS** |
-| **TC-06** | Teléfono | Alerta crítica de fatiga del jugador en el celular. | Se despliega un modal de advertencia en el teléfono si el pulso supera 120 lpm. | **PASS** |
+| **TC-04** | Wearable | Emisión de datos dinámicos (pasos, ritmo y tiempo de juego) vía notificaciones BLE. | El reloj transmite payloads optimizados de bytes (pasos, pulso cardíaco y contador de tiempo de juego). | **PASS** |
+| **TC-05** | Teléfono | Recepción y parseo de bytes de notificaciones BLE del reloj. | La app móvil se suscribe con `setNotifyValue(true)` y muestra el tiempo de juego, pasos y ritmo. | **PASS** |
+| **TC-06** | Ecosistema | Alerta médica y recordatorio de tiempo de juego excesivo con vibraciones. | Se despliega un modal de descanso en el teléfono y vibraciones físicas en el wearable al alcanzar las 2 horas de juego (simulado). | **PASS** |
 | **TC-07** | Smart TV | Navegación D-pad mediante flechas del teclado físico en el catálogo. | El foco dorado se desplaza en el grid 2x2 sin romper la lógica de límites. | **PASS** |
 | **TC-08** | Smart TV | Tecla Enter/OK en la TV para cargar detalles y recurso multimedia. | Al presionar Enter, se despliega la descripción, estadísticas e imagen de fondo. | **PASS** |
 | **TC-09** | PWA Smart TV | Comportamiento offline mediante Service Worker. | Tras desactivar la red en Chrome, la estructura y página de la TV cargan de caché. | **PASS** |
@@ -144,8 +144,8 @@ A continuación, se listan los marcadores para incluir las capturas físicas exi
 *Muestra la pantalla de tu celular con las métricas actualizándose por Bluetooth en tiempo real.*
 ![Evidencia Teléfono BLE](assets/evidence/telefono_ble_recepcion.png)
 
-### 5.3 Captura de Alerta de Umbral Crítico
-*Muestra la alerta visible en el teléfono cuando el pulso cardíaco del reloj supera los 120 lpm.*
+### 5.3 Captura de Alerta Médica de Descanso
+*Muestra la alerta visible en el teléfono cuando el tiempo de juego acumulado supera las 2 horas.*
 ![Alerta de Umbral Crítico](assets/evidence/telefono_alerta_ritmo.png)
 
 ### 5.4 Capturas de la Smart TV PWA

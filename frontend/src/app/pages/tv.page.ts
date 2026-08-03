@@ -113,7 +113,11 @@ interface WeaponItem {
         } @else {
           <!-- Modo Mapa Interactivo (Alta Resolución) -->
           <div class="tv-map-panel">
-            <div style="background-image: url('https://images.squarespace-cdn.com/content/v1/5c1a8d055417fc99577553f1/e9e30a5c-fbf8-460d-a773-7cb73a5a8f67/Elden+Ring+World+Map.jpg'); background-size: contain; background-position: center; background-repeat: no-repeat; width: 100%; height: 100%; border-radius: 16px; box-shadow: 0 0 30px rgba(198, 161, 91, 0.45);"></div>
+            <img 
+              src="https://images.squarespace-cdn.com/content/v1/5c1a8d055417fc99577553f1/e9e30a5c-fbf8-460d-a773-7cb73a5a8f67/Elden+Ring+World+Map.jpg" 
+              alt="Elden Ring World Map"
+              style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 16px; box-shadow: 0 0 30px rgba(198, 161, 91, 0.45);"
+            />
           </div>
         }
       </div>
@@ -214,9 +218,12 @@ interface WeaponItem {
     }
 
     .tv-map-panel {
-      flex-grow: 1;
-      height: calc(100% - 100px);
+      flex: 1;
       width: 100%;
+      min-height: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
       box-sizing: border-box;
       padding-bottom: 20px;
     }

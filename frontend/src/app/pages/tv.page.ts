@@ -31,78 +31,95 @@ interface WeaponItem {
             <span class="tv-logo-glow">AEGIS Wiki</span>
             <span class="tv-subtitle">Companion Mode v2.0</span>
           </div>
-          <div class="tv-clock">
-            {{ currentTime() }} | {{ currentDate() }}
+          <div style="display: flex; align-items: center;">
+            <button (click)="toggleViewMode()" class="tv-toggle-button">
+              <i class="pi" [class.pi-map]="viewMode() === 'weapons'" [class.pi-images]="viewMode() === 'map'"></i>
+              {{ viewMode() === 'weapons' ? 'Ver Mapa (M)' : 'Ver Catálogo (M)' }}
+            </button>
+            <div class="tv-clock" style="margin-left: 20px;">
+              {{ currentTime() }} | {{ currentDate() }}
+            </div>
           </div>
         </header>
 
-        <!-- Contenido principal en dos columnas -->
-        <div class="tv-content-grid">
-          <!-- Columna izquierda: Grid 2x2 de armas -->
-          <div class="tv-grid-panel">
-            <h2 class="tv-section-title">Catálogo de Armas</h2>
-            <div class="tv-2x2-grid">
-              @for (weapon of weapons(); track weapon.id; let idx = $index) {
-                <div 
-                  class="tv-card" 
-                  [class.tv-card-active]="idx === focusedIndex()"
-                  [class.tv-card-selected]="idx === selectedIndex()"
-                  (click)="selectIndex(idx)"
-                >
-                  <div class="tv-card-glow"></div>
-                  <div class="tv-card-content">
-                    <span class="tv-card-name">{{ weapon.nombre }}</span>
-                    <span class="tv-card-type">{{ weapon.tipo }}</span>
-                    <span class="tv-card-stats" style="font-size: 1.15rem; color: #caa551; margin-top: 5px; font-weight: 500;">
-                      Físico: {{ weapon.dano_base }} | {{ weapon.escalado }}
-                    </span>
+        <!-- Contenido principal -->
+        @if (viewMode() === 'weapons') {
+          <div class="tv-content-grid">
+            <!-- Columna izquierda: Grid de armas -->
+            <div class="tv-grid-panel">
+              <h2 class="tv-section-title">Catálogo de Armas</h2>
+              <div class="tv-2x2-grid">
+                @for (weapon of weapons(); track weapon.id; let idx = $index) {
+                  <div 
+                    class="tv-card" 
+                    [class.tv-card-active]="idx === focusedIndex()"
+                    [class.tv-card-selected]="idx === selectedIndex()"
+                    (click)="selectIndex(idx)"
+                  >
+                    <div class="tv-card-glow"></div>
+                    <div class="tv-card-content">
+                      <span class="tv-card-name">{{ weapon.nombre }}</span>
+                      <span class="tv-card-type">{{ weapon.tipo }}</span>
+                      <span class="tv-card-stats" style="font-size: 1.15rem; color: #caa551; margin-top: 5px; font-weight: 500;">
+                        Físico: {{ weapon.dano_base }} | {{ weapon.escalado }}
+                      </span>
+                    </div>
+                  </div>
+                } @empty {
+                  <div class="tv-card" style="grid-column: span 2; grid-row: span 2; justify-content: center; align-items: center;">
+                    <span class="tv-card-name">Cargando armas de la Wiki...</span>
+                  </div>
+                }
+              </div>
+              <div class="tv-controls-hint">
+                <span class="hint-item"><i class="pi pi-directions"></i> Usar Flechas del control para navegar</span>
+                <span class="hint-item"><i class="pi pi-check-circle"></i> Presionar Enter / OK para ver Lore</span>
+              </div>
+            </div>
+
+            <!-- Columna derecha: Detalles (10-foot UI) -->
+            <div class="tv-details-panel">
+              @if (getSelectedWeapon(); as weapon) {
+                <div class="tv-details-card">
+                  <h1 class="tv-weapon-title">{{ weapon.nombre }}</h1>
+                  <h3 class="tv-weapon-subtitle">{{ weapon.tipo }}</h3>
+                  
+                  <div class="tv-weapon-stats">
+                    <div class="stat-badge">
+                      <span class="stat-label">Daño Base</span>
+                      <span class="stat-value">{{ weapon.dano_base }}</span>
+                    </div>
+                    <div class="stat-badge">
+                      <span class="stat-label">Escalado</span>
+                      <span class="stat-value">{{ weapon.escalado }}</span>
+                    </div>
+                  </div>
+
+                  <div class="tv-weapon-lore-box">
+                    <h4 class="lore-header">HISTORIA Y LORE</h4>
+                    <p class="tv-weapon-description">{{ weapon.descripcion }}</p>
                   </div>
                 </div>
-              } @empty {
-                <div class="tv-card" style="grid-column: span 2; grid-row: span 2; justify-content: center; align-items: center;">
-                  <span class="tv-card-name">Cargando armas de la Wiki...</span>
+              } @else {
+                <div class="tv-details-card" style="justify-content: center; align-items: center; text-align: center;">
+                  <h1 class="tv-weapon-title" style="font-size: 3rem;">AEGIS Wiki</h1>
+                  <p class="tv-weapon-description" style="font-size: 1.8rem; color: #94a3b8;">
+                    Selecciona un arma con el control remoto o escoge una en la aplicación móvil para proyectar su historia aquí.
+                  </p>
                 </div>
               }
             </div>
-            <div class="tv-controls-hint">
-              <span class="hint-item"><i class="pi pi-directions"></i> Usar Flechas del control para navegar</span>
-              <span class="hint-item"><i class="pi pi-check-circle"></i> Presionar Enter / OK para ver Lore</span>
-            </div>
           </div>
-
-          <!-- Columna derecha: Detalles (10-foot UI) -->
-          <div class="tv-details-panel">
-            @if (getSelectedWeapon(); as weapon) {
-              <div class="tv-details-card">
-                <h1 class="tv-weapon-title">{{ weapon.nombre }}</h1>
-                <h3 class="tv-weapon-subtitle">{{ weapon.tipo }}</h3>
-                
-                <div class="tv-weapon-stats">
-                  <div class="stat-badge">
-                    <span class="stat-label">Daño Base</span>
-                    <span class="stat-value">{{ weapon.dano_base }}</span>
-                  </div>
-                  <div class="stat-badge">
-                    <span class="stat-label">Escalado</span>
-                    <span class="stat-value">{{ weapon.escalado }}</span>
-                  </div>
-                </div>
-
-                <div class="tv-weapon-lore-box">
-                  <h4 class="lore-header">HISTORIA Y LORE</h4>
-                  <p class="tv-weapon-description">{{ weapon.descripcion }}</p>
-                </div>
-              </div>
-            } @else {
-              <div class="tv-details-card" style="justify-content: center; align-items: center; text-align: center;">
-                <h1 class="tv-weapon-title" style="font-size: 3rem;">AEGIS Wiki</h1>
-                <p class="tv-weapon-description" style="font-size: 1.8rem; color: #94a3b8;">
-                  Selecciona un arma con el control remoto o escoge una en la aplicación móvil para proyectar su historia aquí.
-                </p>
-              </div>
-            }
+        } @else {
+          <!-- Modo Mapa Interactivo -->
+          <div class="tv-map-panel">
+            <iframe
+              src="https://mapgenie.io/elden-ring/maps/the-lands-between?embed=light"
+              title="Mapa interactivo de Elden Ring"
+              style="width: 100%; height: 100%; border: 0; border-radius: 16px; box-shadow: 0 0 30px rgba(198, 161, 91, 0.45);"
+            ></iframe>
           </div>
-        </div>
+        }
       </div>
     </div>
   `,
@@ -176,6 +193,38 @@ interface WeaponItem {
       font-family: monospace;
     }
 
+    .tv-toggle-button {
+      background: rgba(198, 161, 91, 0.12);
+      border: 1.5px solid #C6A15B;
+      color: #C6A15B;
+      padding: 6px 14px;
+      border-radius: 18px;
+      font-size: 1.15rem;
+      font-weight: bold;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .tv-toggle-button:hover {
+      background: #C6A15B;
+      color: #000;
+      box-shadow: 0 0 12px rgba(198, 161, 91, 0.4);
+    }
+    .tv-toggle-button i {
+      font-size: 1.1rem;
+    }
+
+    .tv-map-panel {
+      flex-grow: 1;
+      height: calc(100% - 100px);
+      width: 100%;
+      box-sizing: border-box;
+      padding-bottom: 20px;
+    }
+
     .tv-content-grid {
       display: grid;
       grid-template-columns: 1fr 1.2fr;
@@ -201,10 +250,25 @@ interface WeaponItem {
     .tv-2x2-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      grid-template-rows: repeat(2, 1fr);
       gap: 25px;
       flex-grow: 1;
-      max-height: 480px;
+      max-height: 520px;
+      overflow-y: auto;
+      padding-right: 12px;
+    }
+    .tv-2x2-grid::-webkit-scrollbar {
+      width: 8px;
+    }
+    .tv-2x2-grid::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 4px;
+    }
+    .tv-2x2-grid::-webkit-scrollbar-thumb {
+      background: rgba(198, 161, 91, 0.3);
+      border-radius: 4px;
+    }
+    .tv-2x2-grid::-webkit-scrollbar-thumb:hover {
+      background: rgba(198, 161, 91, 0.6);
     }
 
     .tv-card {
@@ -370,6 +434,11 @@ export class TvPage implements OnInit, OnDestroy {
 
   protected readonly currentTime = signal<string>('');
   protected readonly currentDate = signal<string>('');
+  protected readonly viewMode = signal<'weapons' | 'map'>('weapons');
+
+  protected toggleViewMode() {
+    this.viewMode.set(this.viewMode() === 'weapons' ? 'map' : 'weapons');
+  }
 
   private eventSource: EventSource | null = null;
   private clockInterval: any;
@@ -419,13 +488,12 @@ export class TvPage implements OnInit, OnDestroy {
   private loadWeapons() {
     this.http.get<WeaponItem[]>('/api/armas').subscribe({
       next: (data) => {
-        const sliced = data.slice(0, 4);
-        this.weapons.set(sliced);
-        if (sliced.length > 0) {
+        this.weapons.set(data);
+        if (data.length > 0) {
           this.selectedIndex.set(0);
           // Guardar en cache local para offline y auditoría de retención de datos
           try {
-            localStorage.setItem('aegis_weapons_cache', JSON.stringify(sliced));
+            localStorage.setItem('aegis_weapons_cache', JSON.stringify(data));
             localStorage.setItem('aegis_cache_time_weapons', Date.now().toString());
           } catch(e) {
             console.error('Error al guardar en cache local:', e);
@@ -486,7 +554,17 @@ export class TvPage implements OnInit, OnDestroy {
           if (foundIdx > -1) {
             this.selectedIndex.set(foundIdx);
             this.focusedIndex.set(foundIdx);
+            this.viewMode.set('weapons');
+            setTimeout(() => {
+              const element = document.querySelector('.tv-card-selected');
+              if (element) {
+                element.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+              }
+            }, 50);
           }
+        } else if (event.data && event.data.event === 'view-mode') {
+          const mode = event.data.data?.mode === 'map' ? 'map' : 'weapons';
+          this.viewMode.set(mode);
         }
       };
     } catch (e) {
@@ -510,7 +588,17 @@ export class TvPage implements OnInit, OnDestroy {
           if (foundIdx > -1) {
             this.selectedIndex.set(foundIdx);
             this.focusedIndex.set(foundIdx);
+            this.viewMode.set('weapons');
+            setTimeout(() => {
+              const element = document.querySelector('.tv-card-selected');
+              if (element) {
+                element.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+              }
+            }, 50);
           }
+        } else if (payload.event === 'view-mode') {
+          const mode = payload.data?.mode === 'map' ? 'map' : 'weapons';
+          this.viewMode.set(mode);
         }
       } catch (err) {
         console.error('Error parsing SSE sync message:', err);
@@ -532,6 +620,14 @@ export class TvPage implements OnInit, OnDestroy {
   // Lógica de navegación con D-pad (Flechas de teclado para la TV)
   @HostListener('window:keydown', ['$event'])
   handleKeyboardEvent(event: KeyboardEvent) {
+    if (event.key === 'm' || event.key === 'M') {
+      this.toggleViewMode();
+      event.preventDefault();
+      return;
+    }
+
+    if (this.viewMode() !== 'weapons') return;
+
     const list = this.weapons();
     if (list.length === 0) return;
 
@@ -539,23 +635,27 @@ export class TvPage implements OnInit, OnDestroy {
 
     switch (event.key) {
       case 'ArrowUp':
-        if (index === 2) index = 0;
-        else if (index === 3) index = 1;
+        if (index >= 2) {
+          index -= 2;
+        }
         event.preventDefault();
         break;
       case 'ArrowDown':
-        if (index === 0) index = 2;
-        else if (index === 1) index = 3;
+        if (index + 2 < list.length) {
+          index += 2;
+        }
         event.preventDefault();
         break;
       case 'ArrowLeft':
-        if (index === 1) index = 0;
-        else if (index === 3) index = 2;
+        if (index % 2 === 1) {
+          index -= 1;
+        }
         event.preventDefault();
         break;
       case 'ArrowRight':
-        if (index === 0) index = 1;
-        else if (index === 2) index = 3;
+        if (index % 2 === 0 && index + 1 < list.length) {
+          index += 1;
+        }
         event.preventDefault();
         break;
       case 'Enter':
@@ -565,9 +665,15 @@ export class TvPage implements OnInit, OnDestroy {
         break;
     }
 
-    // Lógica de límites
+    // Lógica de límites y auto-scroll
     if (index >= 0 && index < list.length) {
       this.focusedIndex.set(index);
+      setTimeout(() => {
+        const element = document.querySelector('.tv-card-active');
+        if (element) {
+          element.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        }
+      }, 50);
     }
   }
 

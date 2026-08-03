@@ -187,6 +187,33 @@ class EcosystemState extends ChangeNotifier {
     }
   }
 
+  Future<bool> publishViewMode(String mode) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_activeServerUrl/sync/publish'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'event': 'view-mode',
+          'data': {'mode': mode}
+        }),
+      ).timeout(
+        const Duration(seconds: 3),
+        onTimeout: () => http.post(
+          Uri.parse('$backendUrl/sync/publish'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'event': 'view-mode',
+            'data': {'mode': mode}
+          }),
+        ),
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('Error al sincronizar vista con TV: $e');
+      return false;
+    }
+  }
+
   // Activar/Desactivar Simulador local
   void toggleSimulation(bool value) {
     _isSimulating = value;
@@ -675,6 +702,64 @@ class CatalogTab extends StatelessWidget {
                 child: Text(
                   'Toca un arma del catálogo para proyectarla en tiempo real en tu Smart TV.',
                   style: TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                    final success = await state.publishViewMode('map');
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            success
+                                ? 'Proyectando Mapa Interactivo en la Smart TV'
+                                : 'Error al cambiar vista en la Smart TV',
+                          ),
+                          backgroundColor: success ? Colors.green : Colors.red,
+                        ),
+                      );
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFC6A15B),
+                    foregroundColor: Colors.black,
+                  ),
+                  icon: const Icon(Icons.map),
+                  label: const Text('Mostrar Mapa en TV', style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                    final success = await state.publishViewMode('weapons');
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            success
+                                ? 'Proyectando Catálogo en la Smart TV'
+                                : 'Error al cambiar vista en la Smart TV',
+                          ),
+                          backgroundColor: success ? Colors.green : Colors.red,
+                        ),
+                      );
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.grey[800],
+                    foregroundColor: Colors.white,
+                  ),
+                  icon: const Icon(Icons.menu_book),
+                  label: const Text('Mostrar Armas', style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ),
             ],

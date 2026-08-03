@@ -1,13 +1,24 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="utf-8">
-  <title>Frontend</title>
+  <title>AEGIS Wiki - Elden Ring Companion</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="manifest" href="/manifest.json">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' http://localhost:3000 https://aegis-wiki-backend.onrender.com; connect-src 'self' http://localhost:3000 https://aegis-wiki-backend.onrender.com; img-src 'self' data: https:; media-src 'self' https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com;">
 </head>
 <body>
   <app-root></app-root>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+          .then(reg => console.log('Service Worker registrado.', reg))
+          .catch(err => console.error('Error Service Worker:', err));
+      });
+    }
+  </script>
 </body>
 </html>

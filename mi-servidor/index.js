@@ -1170,6 +1170,39 @@ app.get('/admin/bitacora', async (req, res) => {
   }
 });
 
+let sseClients = [];
+
+app.get('/sync/subscribe', (req, res) => {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.flushHeaders();
+
+  sseClients.push(res);
+
+  req.on('close', () => {
+    sseClients = sseClients.filter(client => client !== res);
+  });
+});
+
+app.post('/sync/publish', (req, res) => {
+  const { event, data } = req.body ?? {};
+  if (!event) {
+    return res.status(400).json({ message: 'El nombre del evento es obligatorio.' });
+  }
+
+  sseClients.forEach(client => {
+    try {
+      client.write(`data: ${JSON.stringify({ event, data })}\n\n`);
+    } catch (e) {
+      console.error('Error al notificar cliente SSE:', e.message);
+    }
+  });
+
+  return res.json({ message: 'Evento publicado correctamente.' });
+});
+
 // Ruta para ver todas las armas de tu Wiki
 app.get('/armas', async (req, res) => {
   try {

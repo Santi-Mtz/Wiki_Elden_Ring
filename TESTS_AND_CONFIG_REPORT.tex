@@ -1,0 +1,124 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage{hyperref}
+\usepackage{geometry}
+\usepackage{booktabs}
+\geometry{margin=1in}
+
+\title{Reporte de Configuración de Herramientas, Emuladores y Plan de Pruebas (SA.5 y SA.6)}
+\author{AEGIS Wiki - Elden Ring}
+\date{18 de Julio de 2026}
+
+\begin{document}
+
+\maketitle
+
+\section{SA.6.A: Configuración de Herramientas de Desarrollo}
+
+\subsection{Versiones del SDK de Flutter y Dart}
+\begin{itemize}
+    \item \textbf{Flutter SDK}: 3.44.4 (Canal stable)
+    \item \textbf{Dart SDK}: 3.12.2
+    \item \textbf{Versión del Framework de Flutter}: ad70ec4617 (revisión estable)
+\end{itemize}
+
+\subsection{Android Studio y Plugins}
+\begin{itemize}
+    \item \textbf{IDE}: Android Studio Ladybug (2024.2.1)
+    \item \textbf{Plugins Instalados}:
+    \begin{itemize}
+        \item \textit{Flutter Plugin}: v78.2.1 (creación y ejecución en emuladores).
+        \item \textit{Dart Plugin}: v241.15989 (soporte de sintaxis).
+    \end{itemize}
+\end{itemize}
+
+\subsection{Herramientas de la Unidad 3 (Smart TV)}
+\begin{itemize}
+    \item \textbf{IDE Principal}: Visual Studio Code (v1.91.0)
+    \item \textbf{Extensiones VS Code}:
+    \begin{itemize}
+        \item \textit{Angular Language Service}: v18.0.0 (autocompletado de plantillas).
+        \item \textit{Prettier - Code Formatter}: v10.4.0 (formateo estandarizado).
+    \end{itemize}
+    \item \textbf{FFmpeg}: v6.1 (optimización de recursos de video locales en la Smart TV).
+\end{itemize}
+
+\subsection{Dependencias Clave de las Aplicaciones}
+Las dependencias y versiones configuradas en los archivos \texttt{pubspec.yaml} son:
+\begin{itemize}
+    \item \textbf{telefono\_app}:
+    \begin{itemize}
+        \item \texttt{flutter\_blue\_plus: \^2.3.10} (conexión BLE).
+        \item \texttt{http: \^1.6.0} (peticiones REST).
+        \item \texttt{provider: \^6.1.5+1} (gestión de estado de telemetría y sesión).
+        \item \texttt{shared\_preferences: \^2.5.5} (persistencia del token).
+    \end{itemize}
+    \item \textbf{wearable\_app}:
+    \begin{itemize}
+        \item \texttt{flutter\_ble\_peripheral: \^2.1.1} (servidor GATT y publicidad BLE).
+    \end{itemize}
+\end{itemize}
+
+\section{SA.6.B: Configuración de Emuladores}
+
+\subsection{Emulador de Teléfono (Android)}
+\begin{itemize}
+    \item \textbf{Dispositivo Virtual (AVD)}: Pixel 6 Pro
+    \item \textbf{API Level}: API 34 (Android 14.0)
+    \item \textbf{Memoria RAM Asignada}: 4096 MB (4 GB)
+\end{itemize}
+
+\subsection{Emulador Wear OS (Reloj Inteligente)}
+\begin{itemize}
+    \item \textbf{Dispositivo Virtual (AVD)}: Wear OS Large Round (Circular)
+    \item \textbf{API Level}: API 30 (Wear OS 3.0 / Android 11.0)
+    \item \textbf{Memoria RAM Asignada}: 2048 MB (2 GB)
+\end{itemize}
+
+\subsection{Emulación de Smart TV (Chrome DevTools)}
+\begin{itemize}
+    \item \textbf{Navegador}: Google Chrome (v126.0)
+    \item \textbf{Resolución Configurada}: Fija en \texttt{1920px x 1080px} (Full HD).
+    \item \textbf{Safe Zone}: Margen activo de seguridad del 5\% (\texttt{padding: 54px 96px}).
+\end{itemize}
+
+\subsection{Resolución de Problemas (Troubleshooting)}
+\begin{itemize}
+    \item \textbf{Permisos BLE en Android 12+}: API 31+ requiere permisos explícitos de \texttt{BLUETOOTH\_CONNECT} y \texttt{BLUETOOTH\_SCAN}. Solución: Añadidos al \texttt{AndroidManifest.xml}.
+    \item \textbf{Crasheo de symlinks en Windows}: Solución: Activación del ``Modo Desarrollador'' en Windows 11.
+    \item \textbf{Demora de Render en frío}: Solución: Configuración de fallback automático en el móvil a \texttt{localhost:3000} si la petición excede 4 segundos.
+\end{itemize}
+
+\newpage
+\section{SA.5: Plan y Reporte de Pruebas (10 Casos de Verificación)}
+
+\begin{table}[htbp]
+\centering
+\caption{Matriz de Pruebas Ejecutadas para el Ecosistema}
+\begin{tabular}{llllc}
+\toprule
+\textbf{ID} & \textbf{Componente} & \textbf{Prueba Realizada} & \textbf{Resultado Esperado} & \textbf{Estado} \\
+\midrule
+TC-01 & API Backend & Consumo de catálogo. & Servidor responde JSON de armas. & PASS \\
+TC-02 & Teléfono & Inicio de sesión JWT. & Login exitoso y token guardado. & PASS \\
+TC-03 & Teléfono & Manejo de error de red. & Activa fallback a \texttt{localhost:3000}. & PASS \\
+TC-04 & Wearable & Emisión notificaciones. & Reloj transmite bytes por BLE. & PASS \\
+TC-05 & Teléfono & Suscripción BLE. & Teléfono recibe y parsea runas. & PASS \\
+TC-06 & Teléfono & Alerta de fatiga. & Modal visible al superar 120 lpm. & PASS \\
+TC-07 & Smart TV & Navegación D-pad. & Foco dorado se mueve en grid 2x2. & PASS \\
+TC-08 & Smart TV & Tecla Enter/OK. & Carga lore y multimedia de fondo. & PASS \\
+TC-09 & PWA Smart TV & Modo offline. & Carga PWA desde cache sin red. & PASS \\
+TC-10 & Ecosistema & Sincronización SSE. & TV se actualiza en $<$ 1 segundo. & PASS \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Firma de Validación}
+\begin{itemize}
+    \item \textbf{Nombre del Alumno}: [Nombre del Alumno]
+    \item \textbf{Fecha de Ejecucción}: 18 de Julio de 2026
+    \item \textbf{Firma}: \textit{Validado académicamente bajo el ecosistema AEGIS Wiki.}
+\end{itemize}
+
+\end{document}

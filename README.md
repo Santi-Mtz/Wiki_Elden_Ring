@@ -86,23 +86,46 @@ Una wiki interactiva sobre Elden Ring con autenticación segura mediante WebAuth
 - PostgreSQL 15+ (o Docker con imagen PostgreSQL)
 - npm
 
-### Backend
+### 🚀 Ejecución del Ecosistema Completo (Simultáneo)
+
+El ecosistema está compuesto por 4 componentes independientes que deben ejecutarse de forma simultánea durante la demostración en vivo.
+
+#### 1. Servidor Backend (Express + SSE)
+Inicia la API que expone los endpoints de datos, autenticación y el canal de mensajería en tiempo real Server-Sent Events (SSE).
 ```bash
 cd mi-servidor
 npm install
-npm run db:init    # Inicializar base de datos
-npm start          # Inicia en puerto 3000
+npm run db:init    # Inicializa las tablas y datos semilla en Neon
+npm start          # Corre en http://localhost:3000
 ```
 
-### Frontend
+#### 2. Smart TV PWA (Angular)
+Inicia el cliente de TV. Para probarlo en diseño de 10 pies (10-foot UI), abre Chrome DevTools, activa la vista responsiva y define una resolución fija de `1920x1080`.
 ```bash
 cd frontend
 npm install
-npm start          # Inicia en puerto 4200
-# O: ng serve --open
+npm start          # Corre en http://localhost:4200
+```
+*   **Acceso**: Abre `http://localhost:4200/tv` en tu navegador.
+*   **Navegación**: Utiliza las flechas de teclado (D-pad) y presiona `Enter` para abrir la descripción.
+
+#### 3. Aplicación Móvil (Flutter - `telefono_app`)
+Nodo central que actúa como cliente BLE del reloj y publica los eventos de sincronización a la TV.
+```bash
+cd telefono_app
+flutter pub get
+flutter run        # Selecciona un emulador de telefono o tu dispositivo fisico
 ```
 
-La aplicación estará disponible en `http://localhost:4200`
+#### 4. Aplicación Wearable (Wear OS - `wearable_app`)
+Simula los sensores (pasos, pulso cardiaco y runas) exponiéndolos como un GATT Server BLE.
+```bash
+cd wearable_app
+flutter pub get
+flutter run        # Ejecutalo en tu emulador de Wear OS en Android Studio
+```
+
+---
 
 ## Endpoints Principales de API
 

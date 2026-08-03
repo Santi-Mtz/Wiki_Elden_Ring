@@ -22,6 +22,7 @@ export const routes: Routes = [
 	{ path: 'tareas', canActivate: [authGuard], loadComponent: () => import('./pages/tareas.page').then((m) => m.TareasPage) },
 	{ path: 'vista-admin', canActivate: [authGuard, adminGuard], loadComponent: () => import('./pages/vista-admin.page').then((m) => m.VistaAdminPage) },
 	{ path: 'admin-usuarios', canActivate: [authGuard, adminGuard], loadComponent: () => import('./pages/usuarios-admin.page').then((m) => m.UsuariosAdminPage) },
+	{ path: 'tv', loadComponent: () => import('./pages/tv.page').then((m) => m.TvPage) },
 	{ path: 'vista-usuario', canActivate: [authGuard, userGuard], loadComponent: () => import('./pages/vista-usuario.page').then((m) => m.VistaUsuarioPage) },
 	{ path: 'seguridad', canActivate: [authGuard], loadComponent: () => import('./pages/seguridad.page').then((m) => m.SeguridadPage) },
 	{ path: 'login', loadComponent: () => import('./pages/login.page').then((m) => m.LoginPage) },

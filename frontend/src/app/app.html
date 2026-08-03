@@ -1,5 +1,6 @@
 <main class="page" [class]="currentTheme()">
-  <header class="topbar">
+  @if (!isTvRoute()) {
+    <header class="topbar">
     <div class="topbar-shell">
       <div class="brand">
         <img src="/assets/Logo/logo_provisional.jpg" alt="AEGIS Wiki" />
@@ -59,12 +60,16 @@
         [attr.aria-expanded]="sidebarOpen()"
       ></button>
     </div>
-  </header>
+    </header>
+  }
 
-  <div class="sidebar-overlay" [class.open]="sidebarOpen()" (click)="closeSidebar()"></div>
+  @if (!isTvRoute()) {
+    <div class="sidebar-overlay" [class.open]="sidebarOpen()" (click)="closeSidebar()"></div>
+  }
 
   <div class="layout">
-    <aside class="sidebar" [class.open]="sidebarOpen()" aria-label="Panel lateral" [attr.aria-hidden]="!sidebarOpen()">
+    @if (!isTvRoute()) {
+      <aside class="sidebar" [class.open]="sidebarOpen()" aria-label="Panel lateral" [attr.aria-hidden]="!sidebarOpen()">
       <div class="sidebar-head">
         <strong>Panel de navegacion</strong>
         <button pButton type="button" icon="pi pi-times" text rounded styleClass="sidebar-close" ariaLabel="Cerrar panel" (click)="closeSidebar()"></button>
@@ -147,6 +152,7 @@
         </div>
       </p-card>
     </aside>
+  }
 
     <section class="content">
       <div class="content-shell">
@@ -155,26 +161,28 @@
     </section>
   </div>
 
-  <footer class="footer">
-    <div class="footer-meta">
-      <p>AEGIS Wiki · Contenido comunitario de Elden Ring</p>
-      <nav class="footer-links" aria-label="Enlaces institucionales">
-        @for (item of footerMenu; track item.path) {
-          <a [routerLink]="item.path">{{ item.label }}</a>
-        }
-      </nav>
-    </div>
-    <div class="footer-social">
-      <a pButton icon="pi pi-discord" text rounded ariaLabel="Discord" href="https://discord.com" target="_blank" rel="noopener noreferrer">
-        <span class="sr-only">Discord</span>
-      </a>
-      <a pButton icon="pi pi-youtube" text rounded ariaLabel="YouTube" href="https://youtube.com" target="_blank" rel="noopener noreferrer">
-        <span class="sr-only">YouTube</span>
-      </a>
-      <a pButton icon="pi pi-instagram" text rounded ariaLabel="Instagram" href="https://instagram.com" target="_blank" rel="noopener noreferrer">
-        <span class="sr-only">Instagram</span>
-      </a>
-    </div>
-  </footer>
+  @if (!isTvRoute()) {
+    <footer class="footer">
+      <div class="footer-meta">
+        <p>AEGIS Wiki · Contenido comunitario de Elden Ring</p>
+        <nav class="footer-links" aria-label="Enlaces institucionales">
+          @for (item of footerMenu; track item.path) {
+            <a [routerLink]="item.path">{{ item.label }}</a>
+          }
+        </nav>
+      </div>
+      <div class="footer-social">
+        <a pButton icon="pi pi-discord" text rounded ariaLabel="Discord" href="https://discord.com" target="_blank" rel="noopener noreferrer">
+          <span class="sr-only">Discord</span>
+        </a>
+        <a pButton icon="pi pi-youtube" text rounded ariaLabel="YouTube" href="https://youtube.com" target="_blank" rel="noopener noreferrer">
+          <span class="sr-only">YouTube</span>
+        </a>
+        <a pButton icon="pi pi-instagram" text rounded ariaLabel="Instagram" href="https://instagram.com" target="_blank" rel="noopener noreferrer">
+          <span class="sr-only">Instagram</span>
+        </a>
+      </div>
+    </footer>
+  }
 
 </main>

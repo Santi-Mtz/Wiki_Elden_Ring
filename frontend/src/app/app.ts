@@ -36,6 +36,7 @@ export class App implements OnInit, OnDestroy {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
   private readonly authService = inject(AuthService);
+  protected readonly isTvRoute = signal(false);
   private autoNavigateTimer: ReturnType<typeof setTimeout> | null = null;
   private lastAutoSearchKey = '';
 
@@ -305,6 +306,11 @@ export class App implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.isTvRoute.set(this.router.url === '/tv');
+    this.router.events.subscribe(() => {
+      this.isTvRoute.set(this.router.url === '/tv');
+    });
+
     const host = globalThis.window?.location?.host;
     if (host) {
       this.domain.set(host);

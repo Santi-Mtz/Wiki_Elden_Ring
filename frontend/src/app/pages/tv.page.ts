@@ -43,10 +43,10 @@ interface WeaponItem {
         </header>
 
         <!-- Contenido principal -->
-        @if (viewMode() === 'weapons') {
-          <div class="tv-content-grid">
-            <!-- Columna izquierda: Grid de armas -->
-            <div class="tv-grid-panel">
+        <div class="tv-content-grid">
+          <!-- Columna izquierda: Catálogo de armas o Mapa Interactivo Leaflet -->
+          <div class="tv-grid-panel">
+            @if (viewMode() === 'weapons') {
               <h2 class="tv-section-title">Catálogo de Armas</h2>
               <div class="tv-2x2-grid">
                 @for (weapon of weapons(); track weapon.id; let idx = $index) {
@@ -75,63 +75,49 @@ interface WeaponItem {
                 <span class="hint-item"><i class="pi pi-directions"></i> Usar Flechas del control para navegar</span>
                 <span class="hint-item"><i class="pi pi-check-circle"></i> Presionar Enter / OK para ver Lore</span>
               </div>
-            </div>
+            } @else {
+              <h2 class="tv-section-title">Mapa de las Tierras Intermedias</h2>
+              <div class="tv-leaflet-container" id="leaflet-map"></div>
+              <div class="tv-controls-hint">
+                <span class="hint-item"><i class="pi pi-directions"></i> Flechas del control para navegar entre pines</span>
+                <span class="hint-item"><i class="pi pi-map"></i> Presiona M para volver al catálogo</span>
+              </div>
+            }
+          </div>
 
-            <!-- Columna derecha: Detalles (10-foot UI) -->
-            <div class="tv-details-panel">
-              @if (getSelectedWeapon(); as weapon) {
-                <div class="tv-details-card">
-                  <h1 class="tv-weapon-title">{{ weapon.nombre }}</h1>
-                  <h3 class="tv-weapon-subtitle">{{ weapon.tipo }}</h3>
-                  
-                  <div class="tv-weapon-stats">
-                    <div class="stat-badge">
-                      <span class="stat-label">Daño Base</span>
-                      <span class="stat-value">{{ weapon.dano_base }}</span>
-                    </div>
-                    <div class="stat-badge">
-                      <span class="stat-label">Escalado</span>
-                      <span class="stat-value">{{ weapon.escalado }}</span>
-                    </div>
+          <!-- Columna derecha: Detalles (10-foot UI) -->
+          <div class="tv-details-panel">
+            @if (getSelectedWeapon(); as weapon) {
+              <div class="tv-details-card">
+                <h1 class="tv-weapon-title">{{ weapon.nombre }}</h1>
+                <h3 class="tv-weapon-subtitle">{{ weapon.tipo }}</h3>
+                
+                <div class="tv-weapon-stats">
+                  <div class="stat-badge">
+                    <span class="stat-label">Daño Base</span>
+                    <span class="stat-value">{{ weapon.dano_base }}</span>
                   </div>
-
-                  <div class="tv-weapon-lore-box">
-                    <h4 class="lore-header">HISTORIA Y LORE</h4>
-                    <p class="tv-weapon-description">{{ weapon.descripcion }}</p>
+                  <div class="stat-badge">
+                    <span class="stat-label">Escalado</span>
+                    <span class="stat-value">{{ weapon.escalado }}</span>
                   </div>
                 </div>
-              } @else {
-                <div class="tv-details-card" style="justify-content: center; align-items: center; text-align: center;">
-                  <h1 class="tv-weapon-title" style="font-size: 3rem;">AEGIS Wiki</h1>
-                  <p class="tv-weapon-description" style="font-size: 1.8rem; color: #94a3b8;">
-                    Selecciona un arma con el control remoto o escoge una en la aplicación móvil para proyectar su historia aquí.
-                  </p>
+
+                <div class="tv-weapon-lore-box">
+                  <h4 class="lore-header">HISTORIA Y LORE</h4>
+                  <p class="tv-weapon-description">{{ weapon.descripcion }}</p>
                 </div>
-              }
-            </div>
+              </div>
+            } @else {
+              <div class="tv-details-card" style="justify-content: center; align-items: center; text-align: center;">
+                <h1 class="tv-weapon-title" style="font-size: 3rem;">AEGIS Wiki</h1>
+                <p class="tv-weapon-description" style="font-size: 1.8rem; color: #94a3b8;">
+                  Selecciona un arma con el control remoto o escoge una en la aplicación móvil para proyectar su historia aquí.
+                </p>
+              </div>
+            }
           </div>
-        } @else {
-          <!-- Modo Mapa Interactivo (Nativo y Zoomable) -->
-          <div class="tv-map-container">
-            <div class="tv-map-wrapper" [style.transform]="'translate(' + mapPanX() + 'px, ' + mapPanY() + 'px) scale(' + mapZoom() + ')'">
-              <img 
-                src="/assets/elden_ring_map.png" 
-                alt="Elden Ring World Map"
-                class="tv-map-image"
-              />
-            </div>
-            
-            <!-- Controles flotantes de la TV -->
-            <div class="map-controls">
-              <button (click)="zoomIn()" class="map-btn" title="Acercar"><i class="pi pi-plus"></i></button>
-              <button (click)="zoomOut()" class="map-btn" title="Alejar"><i class="pi pi-minus"></i></button>
-              <button (click)="resetMap()" class="map-btn" title="Centrar"><i class="pi pi-refresh"></i></button>
-            </div>
-            <div class="map-instructions">
-              <span><i class="pi pi-directions"></i> Flechas del control para explorar el mapa | ENTER para Zoom | BACK para Alejar</span>
-            </div>
-          </div>
-        }
+        </div>
       </div>
     </div>
   `,
@@ -494,6 +480,82 @@ interface WeaponItem {
       margin: 0;
       text-align: justify;
     }
+
+    .tv-leaflet-container {
+      flex: 1;
+      width: 100%;
+      min-height: 0;
+      border-radius: 12px;
+      border: 2px solid rgba(198, 161, 91, 0.35);
+      box-shadow: 0 0 25px rgba(198, 161, 91, 0.2);
+      z-index: 10;
+      background: #0a0a0d;
+    }
+
+    /* Estilos para el Marcador de Leaflet Personalizado */
+    .custom-marker {
+      width: 24px;
+      height: 24px;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .marker-core {
+      width: 12px;
+      height: 12px;
+      background: #C6A15B; /* Oro Erdtree */
+      border-radius: 50%;
+      border: 2px solid #ffffff;
+      box-shadow: 0 0 8px rgba(198, 161, 91, 1);
+      z-index: 2;
+    }
+    .marker-glow {
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      background: rgba(198, 161, 91, 0.4);
+      border-radius: 50%;
+      animation: markerPulse 1.8s infinite ease-in-out;
+      z-index: 1;
+    }
+    @keyframes markerPulse {
+      0% { transform: scale(0.6); opacity: 1; }
+      100% { transform: scale(1.6); opacity: 0; }
+    }
+
+    /* Estilo del Marcador Encontrado / Enfocado */
+    .leaflet-custom-marker.active-marker .marker-core {
+      background: #ff5252 !important; /* Rojo para foco activo */
+      box-shadow: 0 0 12px #ff5252 !important;
+      transform: scale(1.2);
+    }
+    .leaflet-custom-marker.active-marker .marker-glow {
+      background: rgba(255, 82, 82, 0.5) !important;
+    }
+
+    /* Estilo de los Tooltips de Leaflet */
+    .custom-leaflet-tooltip {
+      background: rgba(10, 15, 26, 0.9) !important;
+      border: 1.5px solid #C6A15B !important;
+      border-radius: 8px !important;
+      padding: 8px 12px !important;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.6) !important;
+    }
+    .tooltip-name {
+      display: block;
+      font-weight: bold;
+      color: #ffffff;
+      font-size: 1.1rem;
+      font-family: 'Inter', sans-serif;
+    }
+    .tooltip-type {
+      display: block;
+      color: #94a3b8;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
   `]
 })
 export class TvPage implements OnInit, OnDestroy {
@@ -511,25 +573,207 @@ export class TvPage implements OnInit, OnDestroy {
   protected readonly mapPanX = signal<number>(0);
   protected readonly mapPanY = signal<number>(0);
 
+  private leafletMap: any = null;
+  private markersList: { id: number; marker: any }[] = [];
+  protected readonly focusedMarkerIndex = signal<number>(-1);
+  private leafletLoaded = false;
+
   protected toggleViewMode() {
     this.viewMode.set(this.viewMode() === 'weapons' ? 'map' : 'weapons');
     if (this.viewMode() === 'map') {
-      this.resetMap();
+      this.loadLeaflet().then(() => {
+        setTimeout(() => {
+          this.initLeafletMap();
+        }, 100);
+      });
+    } else {
+      if (this.leafletMap) {
+        this.leafletMap.remove();
+        this.leafletMap = null;
+      }
+      this.markersList = [];
+      this.focusedMarkerIndex.set(-1);
     }
   }
 
-  protected zoomIn() {
-    this.mapZoom.update(z => Math.min(z + 0.25, 4.0));
+  private loadLeaflet(): Promise<void> {
+    if (this.leafletLoaded) return Promise.resolve();
+    return new Promise((resolve, reject) => {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+      document.head.appendChild(link);
+
+      const script = document.createElement('script');
+      script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+      script.onload = () => {
+        this.leafletLoaded = true;
+        resolve();
+      };
+      script.onerror = (err) => reject(err);
+      document.body.appendChild(script);
+    });
   }
 
-  protected zoomOut() {
-    this.mapZoom.update(z => Math.max(z - 0.25, 0.75));
+  private initLeafletMap() {
+    if (this.leafletMap) return;
+    const L = (window as any).L;
+    if (!L) return;
+
+    this.leafletMap = L.map('leaflet-map', {
+      crs: L.CRS.Simple,
+      minZoom: -1,
+      maxZoom: 2,
+      zoomControl: false,
+      attributionControl: false
+    });
+
+    const bounds = [[0, 0], [1000, 1000]];
+    L.imageOverlay('/assets/elden_ring_map.png', bounds).addTo(this.leafletMap);
+    this.leafletMap.fitBounds(bounds);
+
+    this.markersList = [];
+    this.allWeaponsList.forEach(weapon => {
+      const [y, x] = this.getWeaponCoords(weapon.id);
+      const markerHtml = `
+        <div class="custom-marker" id="marker-${weapon.id}">
+          <div class="marker-glow"></div>
+          <div class="marker-core"></div>
+        </div>
+      `;
+      const customIcon = L.divIcon({
+        html: markerHtml,
+        className: 'leaflet-custom-marker',
+        iconSize: [24, 24],
+        iconAnchor: [12, 12]
+      });
+
+      const marker = L.marker([y, x], { icon: customIcon }).addTo(this.leafletMap);
+      
+      marker.bindTooltip(`
+        <div class="map-tooltip">
+          <span class="tooltip-name">${weapon.nombre}</span>
+          <span class="tooltip-type">${weapon.tipo}</span>
+        </div>
+      `, { direction: 'top', offset: [0, -10], className: 'custom-leaflet-tooltip' });
+
+      marker.on('click', () => {
+        this.selectWeaponById(weapon.id);
+      });
+
+      this.markersList.push({ id: weapon.id, marker });
+    });
+
+    if (this.markersList.length > 0) {
+      this.selectMarkerByIndex(0);
+    }
   }
 
-  protected resetMap() {
-    this.mapZoom.set(1.0);
-    this.mapPanX.set(0);
-    this.mapPanY.set(0);
+  private getWeaponCoords(id: number): [number, number] {
+    const coords: { [key: number]: [number, number] } = {
+      1: [620, 480],
+      2: [720, 310],
+      3: [580, 710],
+      4: [780, 580],
+      5: [520, 450],
+      6: [700, 490],
+      7: [480, 470],
+      8: [650, 470],
+      9: [680, 390],
+      10: [750, 290],
+      11: [550, 380],
+      12: [530, 430],
+      13: [820, 420],
+      14: [850, 520],
+      15: [770, 380],
+      16: [810, 460],
+      17: [690, 320],
+      18: [630, 350],
+      19: [510, 490],
+      20: [490, 440],
+      21: [710, 260],
+      22: [830, 480],
+      23: [790, 500]
+    };
+    return coords[id] || [500 + (id * 10) % 200, 500 + (id * 15) % 200];
+  }
+
+  private selectMarkerByIndex(idx: number) {
+    this.focusedMarkerIndex.set(idx);
+    this.markersList.forEach((item, i) => {
+      const element = item.marker.getElement();
+      if (element) {
+        if (i === idx) {
+          element.classList.add('active-marker');
+        } else {
+          element.classList.remove('active-marker');
+        }
+      }
+    });
+
+    const item = this.markersList[idx];
+    if (!item) return;
+
+    const [y, x] = this.getWeaponCoords(item.id);
+    this.leafletMap.panTo([y, x], { animate: true });
+    item.marker.openTooltip();
+
+    const foundIdx = this.allWeaponsList.findIndex(w => w.id === item.id);
+    if (foundIdx > -1) {
+      this.selectedIndex.set(foundIdx);
+    }
+  }
+
+  private focusNearestMarker(direction: 'up' | 'down' | 'left' | 'right') {
+    if (!this.leafletMap || this.markersList.length === 0) return;
+
+    let currentIdx = this.focusedMarkerIndex();
+    if (currentIdx === -1) {
+      currentIdx = 0;
+      this.selectMarkerByIndex(currentIdx);
+      return;
+    }
+
+    const currentMarker = this.markersList[currentIdx];
+    const [cy, cx] = this.getWeaponCoords(currentMarker.id);
+
+    let bestIdx = -1;
+    let minDistance = Infinity;
+
+    this.markersList.forEach((m, idx) => {
+      if (idx === currentIdx) return;
+      const [ny, nx] = this.getWeaponCoords(m.id);
+      
+      const dy = ny - cy; 
+      const dx = nx - cx; 
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      let isCorrectDirection = false;
+
+      switch (direction) {
+        case 'up':
+          isCorrectDirection = dy > 0 && Math.abs(dx) <= Math.abs(dy);
+          break;
+        case 'down':
+          isCorrectDirection = dy < 0 && Math.abs(dx) <= Math.abs(dy);
+          break;
+        case 'left':
+          isCorrectDirection = dx < 0 && Math.abs(dy) <= Math.abs(dx);
+          break;
+        case 'right':
+          isCorrectDirection = dx > 0 && Math.abs(dy) <= Math.abs(dx);
+          break;
+      }
+
+      if (isCorrectDirection && dist < minDistance) {
+        minDistance = dist;
+        bestIdx = idx;
+      }
+    });
+
+    if (bestIdx > -1) {
+      this.selectMarkerByIndex(bestIdx);
+    }
   }
 
   private allWeaponsList: WeaponItem[] = [];
@@ -715,32 +959,21 @@ export class TvPage implements OnInit, OnDestroy {
     }
 
     if (this.viewMode() === 'map') {
-      const step = 80;
       switch (event.key) {
         case 'ArrowUp':
-          this.mapPanY.update(y => y + step);
+          this.focusNearestMarker('up');
           event.preventDefault();
           break;
         case 'ArrowDown':
-          this.mapPanY.update(y => y - step);
+          this.focusNearestMarker('down');
           event.preventDefault();
           break;
         case 'ArrowLeft':
-          this.mapPanX.update(x => x + step);
+          this.focusNearestMarker('left');
           event.preventDefault();
           break;
         case 'ArrowRight':
-          this.mapPanX.update(x => x - step);
-          event.preventDefault();
-          break;
-        case 'Enter':
-        case ' ':
-          this.zoomIn();
-          event.preventDefault();
-          break;
-        case 'Backspace':
-        case 'Escape':
-          this.zoomOut();
+          this.focusNearestMarker('right');
           event.preventDefault();
           break;
       }
@@ -794,6 +1027,15 @@ export class TvPage implements OnInit, OnDestroy {
     const fullList = this.allWeaponsList;
     const weapon = fullList.find(w => w.id === weaponId);
     if (!weapon) return;
+
+    // Si estamos en modo mapa, posicionar y centrar en el pin de Leaflet
+    if (this.viewMode() === 'map' && this.leafletMap) {
+      const markerIdx = this.markersList.findIndex(m => m.id === weaponId);
+      if (markerIdx > -1) {
+        this.selectMarkerByIndex(markerIdx);
+        return;
+      }
+    }
 
     const currentGrid = [...this.weapons()];
     const existingIdx = currentGrid.findIndex(w => w.id === weaponId);

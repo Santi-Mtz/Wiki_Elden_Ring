@@ -222,9 +222,12 @@ class EcosystemState extends ChangeNotifier {
     notifyListeners();
   }
 
-  // BLE Scan, Conexión y Suscripción a GATT Server
   Future<void> startBLEScan(BuildContext context) async {
     if (_isSimulating) return;
+    if (FlutterBluePlus.isScanningNow) {
+      debugPrint('Ya hay un escaneo BLE activo. Ignorando.');
+      return;
+    }
 
     try {
       final statuses = await [
@@ -317,8 +320,7 @@ class EcosystemState extends ChangeNotifier {
       for (BluetoothService s in services) {
         if (s.uuid == Guid(serviceUuid)) {
           for (BluetoothCharacteristic c in s.characteristics) {
-            await c.setNotifyValue(true);
-            c.lastValueStream.listen((value) {
+            final sub = c.onValueReceived.listen((value) {
               if (value.isNotEmpty) {
                 if (c.uuid == Guid(runesCharUuid)) {
                   _runes = _bytesToInt(value);
@@ -330,6 +332,8 @@ class EcosystemState extends ChangeNotifier {
                 notifyListeners();
               }
             });
+            device.cancelWhenDisconnected(sub);
+            await c.setNotifyValue(true);
           }
         }
       }

@@ -5,6 +5,7 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 // UUIDs constantes compartidas para BLE
 const String serviceUuid = "19b10000-e8f2-537e-4f6c-d104768a1214";
@@ -225,6 +226,25 @@ class EcosystemState extends ChangeNotifier {
   Future<void> startBLEScan(BuildContext context) async {
     if (_isSimulating) return;
 
+    try {
+      final statuses = await [
+        Permission.bluetoothScan,
+        Permission.bluetoothConnect,
+        Permission.location,
+      ].request();
+
+      if (statuses[Permission.bluetoothScan]?.isDenied == true ||
+          statuses[Permission.bluetoothConnect]?.isDenied == true) {
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Se requieren permisos de Bluetooth para buscar el reloj.')),
+        );
+        return;
+      }
+    } catch (e) {
+      debugPrint('Error al solicitar permisos BLE: $e');
+    }
+
     if (!await FlutterBluePlus.isSupported) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Bluetooth no soportado en este dispositivo.')),
@@ -238,9 +258,15 @@ class EcosystemState extends ChangeNotifier {
     try {
       FlutterBluePlus.scanResults.listen((results) {
         for (ScanResult r in results) {
-          if (r.advertisementData.serviceUuids.contains(Guid(serviceUuid)) ||
-              r.device.platformName.toLowerCase().contains("wearable") ||
-              r.device.platformName.toLowerCase().contains("aegis")) {
+          final String advLocalName = r.advertisementData.localName.toLowerCase();
+          final String platName = r.device.platformName.toLowerCase();
+          final bool matchesUuid = r.advertisementData.serviceUuids.contains(Guid(serviceUuid)) ||
+                                   r.advertisementData.serviceUuids.any((g) => g.toString().toLowerCase() == serviceUuid.toLowerCase());
+          final bool matchesName = advLocalName.contains("wearable") ||
+                                   advLocalName.contains("aegis") ||
+                                   platName.contains("wearable") ||
+                                   platName.contains("aegis");
+          if (matchesUuid || matchesName) {
             FlutterBluePlus.stopScan();
             _connectToDevice(r.device);
             break;

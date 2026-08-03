@@ -257,16 +257,24 @@ class EcosystemState extends ChangeNotifier {
 
     try {
       FlutterBluePlus.scanResults.listen((results) {
+        debugPrint('--- Cantidad de dispositivos BLE detectados: ${results.length} ---');
         for (ScanResult r in results) {
-          final String advLocalName = r.advertisementData.localName.toLowerCase();
-          final String platName = r.device.platformName.toLowerCase();
+          final String advLocalName = r.advertisementData.localName;
+          final String platName = r.device.platformName;
+          final String advertisedUuids = r.advertisementData.serviceUuids.map((g) => g.toString()).join(', ');
+          debugPrint('-> Disp: "${platName}" | AdvName: "${advLocalName}" | UUIDs: [$advertisedUuids] | RSSI: ${r.rssi}');
+
+          final String advLocalNameLower = advLocalName.toLowerCase();
+          final String platNameLower = platName.toLowerCase();
           final bool matchesUuid = r.advertisementData.serviceUuids.contains(Guid(serviceUuid)) ||
                                    r.advertisementData.serviceUuids.any((g) => g.toString().toLowerCase() == serviceUuid.toLowerCase());
-          final bool matchesName = advLocalName.contains("wearable") ||
-                                   advLocalName.contains("aegis") ||
-                                   platName.contains("wearable") ||
-                                   platName.contains("aegis");
+          final bool matchesName = advLocalNameLower.contains("wearable") ||
+                                   advLocalNameLower.contains("aegis") ||
+                                   platNameLower.contains("wearable") ||
+                                   platNameLower.contains("aegis");
+
           if (matchesUuid || matchesName) {
+            debugPrint('¡COINCIDENCIA ENCONTRADA! Deteniendo escaneo y conectando a: ${platName}');
             FlutterBluePlus.stopScan();
             _connectToDevice(r.device);
             break;

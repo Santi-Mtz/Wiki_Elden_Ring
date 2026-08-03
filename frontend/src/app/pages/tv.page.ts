@@ -615,7 +615,7 @@ export class TvPage implements OnInit, OnDestroy {
 
       const link = document.createElement('link');
       link.rel = 'stylesheet';
-      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+      link.href = '/assets/leaflet/leaflet.css';
       link.onload = () => {
         cssLoaded = true;
         checkLoaded();
@@ -624,7 +624,7 @@ export class TvPage implements OnInit, OnDestroy {
       document.head.appendChild(link);
 
       const script = document.createElement('script');
-      script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+      script.src = '/assets/leaflet/leaflet.js';
       script.onload = () => {
         jsLoaded = true;
         checkLoaded();
@@ -635,6 +635,13 @@ export class TvPage implements OnInit, OnDestroy {
   }
 
   private initLeafletMap() {
+    const mapElement = document.getElementById('leaflet-map');
+    if (!mapElement) {
+      // Si el contenedor aún no está en el DOM, reintentar en 50ms
+      setTimeout(() => this.initLeafletMap(), 50);
+      return;
+    }
+
     if (this.leafletMap) return;
     const L = (window as any).L;
     if (!L) return;

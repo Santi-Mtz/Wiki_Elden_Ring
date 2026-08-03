@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter/services.dart';
 
 // UUIDs constantes compartidas para BLE
 const String serviceUuid = "19b10000-e8f2-537e-4f6c-d104768a1214";

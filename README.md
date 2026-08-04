@@ -118,7 +118,7 @@ flutter run        # Selecciona un emulador de telefono o tu dispositivo fisico
 ```
 
 #### 4. Aplicación Wearable (Wear OS - `wearable_app`)
-Simula los sensores (pasos, pulso cardiaco y runas) exponiéndolos como un GATT Server BLE.
+Simula los sensores (pasos, pulso cardiaco y tiempo de juego) exponiéndolos como un GATT Server BLE.
 ```bash
 cd wearable_app
 flutter pub get

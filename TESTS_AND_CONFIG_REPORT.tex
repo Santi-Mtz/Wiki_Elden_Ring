@@ -60,23 +60,24 @@ Las dependencias y versiones configuradas en los archivos \texttt{pubspec.yaml} 
     \end{itemize}
 \end{itemize}
 
-\section{SA.6.B: Configuración de Emuladores}
+\section{SA.6.B: Configuración de Dispositivos Físicos y Entorno}
 
-\subsection{Emulador de Teléfono (Android)}
+\subsection{Dispositivo Móvil Físico (Android)}
 \begin{itemize}
-    \item \textbf{Dispositivo Virtual (AVD)}: Pixel 6 Pro
-    \item \textbf{API Level}: API 34 (Android 14.0)
-    \item \textbf{Memoria RAM Asignada}: 4096 MB (4 GB)
+    \item \textbf{Modelo}: Samsung Galaxy Tab A8 (SM-X210)
+    \item \textbf{Versión del Sistema}: Android 16 (API 36)
+    \item \textbf{Memoria RAM}: 4 GB
+    \item \textbf{Conectividad}: Wi-Fi local y Bluetooth Low Energy (BLE 5.0).
 \end{itemize}
 
-\subsection{Emulador Wear OS (Reloj Inteligente)}
+\subsection{Dispositivo Wearable / Emisor BLE Físico}
 \begin{itemize}
-    \item \textbf{Dispositivo Virtual (AVD)}: Wear OS Large Round (Circular)
-    \item \textbf{API Level}: API 30 (Wear OS 3.0 / Android 11.0)
-    \item \textbf{Memoria RAM Asignada}: 2048 MB (2 GB)
+    \item \textbf{Modelo}: Motorola Edge 60 Pro
+    \item \textbf{Versión del Sistema}: Android 16 (API 36)
+    \item \textbf{Conectividad}: Bluetooth Low Energy (BLE 5.2, modo Peripheral GATT).
 \end{itemize}
 
-\subsection{Emulación de Smart TV (Chrome DevTools)}
+\subsection{Simulación de Smart TV (Chrome DevTools)}
 \begin{itemize}
     \item \textbf{Navegador}: Google Chrome (v126.0)
     \item \textbf{Resolución Configurada}: Fija en \texttt{1920px x 1080px} (Full HD).
@@ -103,9 +104,9 @@ Las dependencias y versiones configuradas en los archivos \texttt{pubspec.yaml} 
 TC-01 & API Backend & Consumo de catálogo. & Servidor responde JSON de armas. & PASS \\
 TC-02 & Teléfono & Inicio de sesión JWT. & Login exitoso y token guardado. & PASS \\
 TC-03 & Teléfono & Manejo de error de red. & Activa fallback a \texttt{localhost:3000}. & PASS \\
-TC-04 & Wearable & Emisión notificaciones. & Reloj transmite bytes por BLE. & PASS \\
-TC-05 & Teléfono & Suscripción BLE. & Teléfono recibe y parsea runas. & PASS \\
-TC-06 & Teléfono & Alerta de fatiga. & Modal visible al superar 120 lpm. & PASS \\
+TC-04 & Wearable & Emisión notificaciones. & Transmite bytes de tiempo de juego y pasos. & PASS \\
+TC-05 & Teléfono & Suscripción BLE. & Recibe y parsea tiempo de juego y pasos. & PASS \\
+TC-06 & Ecosistema & Alerta de tiempo de juego. & Alerta médica de descanso a las 2 horas. & PASS \\
 TC-07 & Smart TV & Navegación D-pad. & Foco dorado se mueve en grid 2x2. & PASS \\
 TC-08 & Smart TV & Tecla Enter/OK. & Carga lore y multimedia de fondo. & PASS \\
 TC-09 & PWA Smart TV & Modo offline. & Carga PWA desde cache sin red. & PASS \\
@@ -116,8 +117,8 @@ TC-10 & Ecosistema & Sincronización SSE. & TV se actualiza en $<$ 1 segundo. & 
 
 \section{Firma de Validación}
 \begin{itemize}
-    \item \textbf{Nombre del Alumno}: [Nombre del Alumno]
-    \item \textbf{Fecha de Ejecucción}: 18 de Julio de 2026
+    \item \textbf{Nombre del Alumno}: Santiago Alberto Martínez Hernández
+    \item \textbf{Fecha de Ejecucción}: 4 de Agosto de 2026
     \item \textbf{Firma}: \textit{Validado académicamente bajo el ecosistema AEGIS Wiki.}
 \end{itemize}
 

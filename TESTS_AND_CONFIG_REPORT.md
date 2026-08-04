@@ -138,15 +138,15 @@ A continuación, se listan los marcadores para incluir las capturas físicas exi
 
 ### 5.1 Capturas del Wearable (Reloj Wear OS)
 *Muestra la interfaz del reloj físico con los sensores encendidos y transmitiendo.*
-![Evidencia Reloj Físico](assets/evidence/reloj_sensor_activo.png)
+![Evidencia Reloj Físico](assets/evidence/reloj_sensor_activo.jpeg)
 
 ### 5.2 Capturas del Teléfono (Recepción de Datos)
 *Muestra la pantalla de tu celular con las métricas actualizándose por Bluetooth en tiempo real.*
-![Evidencia Teléfono BLE](assets/evidence/telefono_ble_recepcion.png)
+![Evidencia Teléfono BLE](assets/evidence/telefono_ble_recepcion.jpeg)
 
 ### 5.3 Captura de Alerta Médica de Descanso
 *Muestra la alerta visible en el teléfono cuando el tiempo de juego acumulado supera las 2 horas.*
-![Alerta de Umbral Crítico](assets/evidence/telefono_alerta_ritmo.png)
+![Alerta de Umbral Crítico](assets/evidence/telefono_alerta_ritmo.jpeg)
 
 ### 5.4 Capturas de la Smart TV PWA
 *Muestra la vista de 1920x1080 del navegador de tu PC en Companion Mode con el grid de 2x2 mostrando las especificaciones (3 campos).*
@@ -154,11 +154,11 @@ A continuación, se listan los marcadores para incluir las capturas físicas exi
 
 ### 5.5 Captura del Ecosistema Integrado Completo
 *Fotografía real que muestra los 3 dispositivos (Reloj, Teléfono e Interfaz de TV en la pantalla) funcionando simultáneamente.*
-![Ecosistema Completo 3 Pantallas](assets/evidence/ecosistema_tres_pantallas.png)
+![Ecosistema Completo 3 Pantallas](assets/evidence/ecosistema_tres_pantallas.jpeg)
 
 ---
 
 ## 6. Firma de Validación
-*   **Nombre del Alumno**: [Ingresa tu Nombre Completo aquí]
-*   **Fecha de Ejecución**: 1 de Agosto de 2026
-*   **Firma**: *Validado académicamente bajo el ecosistema físico de AEGIS Wiki.*
+*   **Nombre del Alumno**: Santiago Alberto Martínez Hernández
+*   **Fecha de Ejecución**: 4 de Agosto de 2026
+*   **Firma**: 

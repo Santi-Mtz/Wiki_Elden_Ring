@@ -1,6 +1,6 @@
 # Manual de Usuario - Sistema de Administración, Seguridad y Auditoría (AEGIS Wiki)
 
-Este manual te guiará paso a paso en el uso de la Wiki de Elden Ring (AEGIS Wiki) para gestionar tu cuenta de usuario, configurar la seguridad y, si eres administrador, gestionar los accesos y revisar la bitácora de auditoría del sistema (requisito de las **Prácticas 11 y 12**).
+Este manual te guiará paso a paso en el uso de la Wiki de Elden Ring (AEGIS Wiki) para gestionar tu cuenta de usuario, configurar la seguridad y, si eres administrador, gestionar los accesos y revisar la bitácora de auditoría del sistema.
 
 ---
 

@@ -1,6 +1,6 @@
 # Manual Técnico - Sistema de Administración, Seguridad y Auditoría (AEGIS Wiki)
 
-Este manual detalla la arquitectura, el diseño de la base de datos, los endpoints de la API, las políticas de seguridad y el sistema de auditoría implementados para cumplir con los requerimientos técnicos de las **Prácticas 11 y 12**.
+Este manual detalla la arquitectura, el diseño de la base de datos, los endpoints de la API, las políticas de seguridad y el sistema de auditoría implementados en la aplicación.
 
 ---
 

@@ -1,193 +1,86 @@
-# AEGIS Wiki Elden Ring
+# Wiki Elden Ring - Evaluación 2: Ecosistema Completo
 
-Una wiki interactiva sobre Elden Ring con autenticación segura mediante WebAuthn biométrico, gestión de perfiles de usuario y contenido multimedia.
+Este proyecto integra un ecosistema interactivo de tres dispositivos (Wearable, Teléfono/Tablet y Smart TV PWA) sincronizados en tiempo real y conectados a un servidor backend central para el caso de estudio de la Wiki de Elden Ring.
 
-## Versiones
+## Características del Ecosistema (Evaluación 2)
 
-- **Node.js**: 24.13.0
-- **Angular**: 21.1.0
-- **Express**: 5.2.1
-- **PostgreSQL**: 15+
-- **@simplewebauthn/browser**: 11.0.0
-- **@simplewebauthn/server**: 11.0.0
+### 1. Aplicación Wearable (Wear OS - wearable_app)
+- Funciona como servidor GATT periférico Bluetooth Low Energy (BLE).
+- Simula y transmite datos en tiempo real cada segundo:
+  - Tiempo de juego acumulado (simulado: 1 segundo real equivale a 10 minutos de juego).
+  - Pasos del jugador.
+  - Ritmo cardíaco (pulsaciones por minuto).
+- Cuenta con un botón de Iniciar/Detener para controlar la simulación.
+- Emite alertas físicas mediante dos vibraciones continuas cuando el tiempo de juego acumulado alcanza las 2 horas (120 minutos).
 
-## Características Implementadas
+### 2. Aplicación Móvil (Android - telefono_app)
+- Actúa como cliente central BLE. Escanea, se conecta y se suscribe por notificaciones (GATT NOTIFY) al wearable.
+- Recibe y decodifica el payload de bytes de las métricas (pasos, ritmo y tiempo de juego).
+- Muestra la telemetría en tiempo real y gestiona el estado de la conexión BLE.
+- Despliega una Alerta de Descanso en pantalla y genera vibraciones físicas cuando detecta que el jugador ha superado las 2 horas de juego acumuladas.
+- Envía eventos HTTP POST de sincronización hacia el backend cuando el usuario selecciona un arma en el catálogo para actualizar la Smart TV.
+- Cuenta con un panel interactivo para configurar dinámicamente la dirección IP del servidor.
+- Maneja excepciones de red mediante reintentos automáticos y timeouts sin crasheos.
 
-### ✅ Autenticación y Seguridad
-- Sistema de login/registro con validación JWT
-- **Autenticación biométrica 2FA** usando WebAuthn (Windows Hello, Touch ID, lectores de huellas)
-- Entrenamiento y gestión de credenciales biométricas desde el perfil del usuario
-- Almacenamiento seguro de credenciales en base de datos PostgreSQL
-- Sesión persistente mediante localStorage
+### 3. PWA para Smart TV (tv_page)
+- Alojada en producción en la plataforma Vercel: `https://wikieldenring.vercel.app/tv`
+- Aplicación web progresiva optimizada para una resolución fija de 1920x1080 (Safe Zone del 5% sin barras de desplazamiento).
+- Diseñada y adaptada a la interacción de 10 pies (10-foot UI) con fuentes de gran tamaño (desde 24px hasta 80px) visibles a distancia.
+- Control total por control remoto mapeado a las flechas del teclado (ArrowUp, ArrowDown, ArrowLeft, ArrowRight) y teclas Enter, Backspace o Escape.
+- Grid de 2x2 con el catálogo de armas de Elden Ring. Al seleccionar un elemento con Enter, se muestra el lore, características clave y una imagen de fondo en alta definición.
+- Navegación espacial D-pad sin rotura de límites de foco y con un resplandor dorado flotante en el elemento activo.
+- Recibe actualizaciones en tiempo real desde el servidor a través de Server-Sent Events (SSE) en menos de 1 segundo para sincronizarse con la tablet.
+- Soporte offline mediante Service Worker y caché estática local.
 
-### ✅ Gestión de Usuarios
-- Sistema de roles (usuario, administrador)
-- Perfil de usuario ("Mi perfil") con:
-  - Información personal (nombre, email, rol, estado de cuenta)
-  - Configuración de huella digital biométrica
-  - Opción para re-enrolar biometría
-- Guardias de ruta para acceso seguro (authGuard, adminGuard, userGuard)
-
-### ✅ Contenido
-- **Bases de datos de Elden Ring**:
-  - Armas y armaduras
-  - Hechizos y milagros
-  - Talismanes
-  - Guías de builds
-- **Mapas interactivos** embebidos (MapGenie):
-  - The Lands Between
-  - The Shadow Realm
-
-### ✅ Interfaz de Usuario
-- Navegación optimizada con sidebar responsive
-- Menú de secciones dinámico (se adapta según autenticación)
-- Estructura: 
-  - Barra superior con branding
-  - Sidebar con sesión del usuario y navegación
-  - Área de contenido flexible
-  - Footer con información
-- Diseño responsivo y tema oscuro
-
-## Estructura del Proyecto
-
-```
-.
-├── frontend/                          # Aplicación Angular
-│   ├── src/
-│   │   ├── app/
-│   │   │   ├── app.ts               # Componente principal con gestión de menú
-│   │   │   ├── app.html             # Layout principal
-│   │   │   ├── app.css              # Estilos globales
-│   │   │   ├── pages/               # Páginas de la aplicación
-│   │   │   │   ├── login.page.ts    # Autenticación+ WebAuthn
-│   │   │   │   ├── vista-usuario.page.ts   # Perfil con config biométrica
-│   │   │   │   ├── vista-admin.page.ts     # Perfil admin
-│   │   │   │   ├── mapa.page.ts    # Mapas interactivos
-│   │   │   │   └── (otras páginas)
-│   │   │   ├── services/            # Servicios
-│   │   │   │   ├── auth.service.ts  # Autenticación y WebAuthn
-│   │   │   │   └── api.service.ts
-│   │   │   └── guards/              # Guardias de ruta
-│   │   ├── assets/                  # Recursos (logos, imágenes)
-│   │   └── main.ts
-│   ├── package.json
-│   └── angular.json
-│
-└── mi-servidor/                      # Backend Express.js
-    ├── index.js                      # Servidor API con endpoints WebAuthn
-    ├── db.js                         # Configuración de base de datos
-    └── package.json
-```
-
-## Cómo Ejecutar
-
-### Requisitos Previos
-- Node.js 24.13.0+
-- PostgreSQL 15+ (o Docker con imagen PostgreSQL)
-- npm
-
-### 🚀 Ejecución del Ecosistema Completo (Simultáneo)
-
-El ecosistema está compuesto por 4 componentes independientes que deben ejecutarse de forma simultánea durante la demostración en vivo.
-
-#### 1. Servidor Backend (Express + SSE)
-Inicia la API que expone los endpoints de datos, autenticación y el canal de mensajería en tiempo real Server-Sent Events (SSE).
-```bash
-cd mi-servidor
-npm install
-npm run db:init    # Inicializa las tablas y datos semilla en Neon
-npm start          # Corre en http://localhost:3000
-```
-
-#### 2. Smart TV PWA (Angular)
-Inicia el cliente de TV. Para probarlo en diseño de 10 pies (10-foot UI), abre Chrome DevTools, activa la vista responsiva y define una resolución fija de `1920x1080`.
-```bash
-cd frontend
-npm install
-npm start          # Corre en http://localhost:4200
-```
-*   **Acceso**: Abre `http://localhost:4200/tv` en tu navegador.
-*   **Navegación**: Utiliza las flechas de teclado (D-pad) y presiona `Enter` para abrir la descripción.
-
-#### 3. Aplicación Móvil (Flutter - `telefono_app`)
-Nodo central que actúa como cliente BLE del reloj y publica los eventos de sincronización a la TV.
-```bash
-cd telefono_app
-flutter pub get
-flutter run        # Selecciona un emulador de telefono o tu dispositivo fisico
-```
-
-#### 4. Aplicación Wearable (Wear OS - `wearable_app`)
-Simula los sensores (pasos, pulso cardiaco y tiempo de juego) exponiéndolos como un GATT Server BLE.
-```bash
-cd wearable_app
-flutter pub get
-flutter run        # Ejecutalo en tu emulador de Wear OS en Android Studio
-```
+### 4. Servidor Backend (backend)
+- Alojado en producción en la plataforma Render: `https://aegis-wiki-backend.onrender.com`
+- API construida con Node.js y Express conectada a una base de datos PostgreSQL de producción.
+- Expone el catálogo de armas en el endpoint /api/armas.
+- Gestiona el canal de Server-Sent Events (SSE) a través de /sync/stream y /sync/publish para la comunicación en tiempo real entre el teléfono y la Smart TV.
 
 ---
 
-## Endpoints Principales de API
+## Instrucciones de Instalación y Ejecución
 
-### Autenticación
-- `POST /auth/login` - Validar credenciales, inicia flujo WebAuthn si es necesario
-- `POST /auth/login/verify-biometric` - Verifica/registra credencial biométrica
-- `POST /auth/register` - Registrar nuevo usuario
-- `POST /auth/logout` - Cerrar sesión
+### Requisitos Previos
+- Node.js versión 24.13.0 o superior.
+- Flutter SDK versión 3.44.x o superior.
+- Dispositivos físicos: un reloj inteligente con Wear OS (o emisor BLE secundario) y una tablet/teléfono Android, conectados a la misma red local Wi-Fi que la computadora de pruebas.
 
-### Biometría (WebAuthn)
-- `GET /auth/biometric/status/:userId` - Verificar si usuario tiene huella registrada
-- `POST /auth/biometric/enroll/start` - Iniciar enrolado de huella desde perfil
-- `POST /auth/biometric/reset` - Eliminar huella registrada
+### Paso 1: Servidor Backend
+1. Navegar a la carpeta backend:
+   cd backend
+2. Instalar dependencias:
+   npm install
+3. Configurar las variables de entorno en el archivo .env con la URL de la base de datos PostgreSQL.
+4. Iniciar el servidor local:
+   npm start
 
-### Contenido
-- `GET /api/armas` - Listar armas
-- `GET /api/armaduras` - Listar armaduras
-- `GET /api/hechizos` - Listar hechizos
-- Y más según contenido disponible
+### Paso 2: Smart TV PWA
+1. Navegar a la carpeta tv_page:
+   cd tv_page
+2. Instalar dependencias e iniciar el servidor Angular:
+   npm install
+   npm start
+3. Abrir la URL en el navegador: http://localhost:4200/tv. Emular una resolución fija de 1920x1080 utilizando las herramientas de desarrollo de Chrome.
 
-## Paleta de Colores
+### Paso 3: Aplicación Móvil (telefono_app)
+1. Conectar el dispositivo móvil Android a la computadora.
+2. Navegar a la carpeta telefono_app:
+   cd telefono_app
+3. Instalar dependencias de Flutter y compilar en el dispositivo:
+   flutter pub get
+   flutter run
+4. En el panel de configuración de la pantalla principal, escribir la IP local de la computadora (ejemplo: http://192.168.1.15:3000) para conectar la app al backend local.
 
-```
-Fondo principal:        #0F1115
-Superficie:             #1A1E24
-Texto:                  #E6E6E6
-Texto secundario:       #A0A6B0
-Acento dorado:          #C9A227
-Acento rojo tenue:      #8B2E2E
-Borde suave:            #2A2F38
-Acento azul:            #7db4ff
-```
+### Paso 4: Aplicación Wearable (wearable_app)
+1. Conectar el wearable o el segundo emisor BLE por ADB inalámbrico.
+2. Navegar a la carpeta wearable_app:
+   cd wearable_app
+3. Instalar dependencias y ejecutar:
+   flutter pub get
+   flutter run
 
-## Tecnologías y Librerías
+---
 
-- **Frontend**: Angular 21 (standalone components), PrimeNG 21, RxJS, TypeScript 5
-- **Backend**: Express.js 5.2.1, PostgreSQL, bcryptjs, @simplewebauthn/server
-- **Seguridad**: JWT, WebAuthn (FIDO2), bcrypt para hashing de contraseñas
-- **Base de datos**: PostgreSQL con tablas: usuarios, armas, armaduras, hechizos, milagros, talismanes, builds, user_webauthn_credentials
-
-## Estado del Proyecto
-
-### Completado
-- ✅ Sistema de autenticación con JWT
-- ✅ Registración de usuarios
-- ✅ WebAuthn biométrico integrado (2FA)
-- ✅ Gestión de perfil de usuario
-- ✅ Navegación y estructura visual
-- ✅ Mapas interactivos
-- ✅ Sistema de roles (usuario/admin)
-- ✅ Guardias de ruta
-
-### En Desarrollo / Mejoras Futuras
-- Búsqueda avanzada de contenido
-- Comparadores de builds
-- Sistema de comentarios
-- Favoritismo de items/builds
-- Importación de datos desde APIs externas
-
-## Notas Importantes
-
-- **Biometría**: Funciona en navegadores modernos (Chrome 67+, Firefox 60+, Safari 13+) con autenticadores de plataforma (Windows Hello, Touch ID, lectores de huellas)
-- **HTTPS**: En producción, considera usar HTTPS para mayor seguridad con WebAuthn
-- **Base de datos**: La aplicación espera PostgreSQL en `localhost:5432` (o configuración en mi-servidor/index.js)
-- **Puerto del servidor**: Backend corre en puerto 3000 por defecto
+Se utilizó inteligencia artificial para la corrección de errores de dicción y estructura.

@@ -4,6 +4,7 @@
 \usepackage{hyperref}
 \usepackage{geometry}
 \usepackage{booktabs}
+\usepackage{graphicx}
 \geometry{margin=1in}
 
 \title{Reporte de Configuración de Herramientas, Emuladores y Plan de Pruebas (SA.5 y SA.6)}
@@ -97,6 +98,7 @@ Las dependencias y versiones configuradas en los archivos \texttt{pubspec.yaml} 
 \begin{table}[htbp]
 \centering
 \caption{Matriz de Pruebas Ejecutadas para el Ecosistema}
+\resizebox{\textwidth}{!}{%
 \begin{tabular}{llllc}
 \toprule
 \textbf{ID} & \textbf{Componente} & \textbf{Prueba Realizada} & \textbf{Resultado Esperado} & \textbf{Estado} \\
@@ -112,7 +114,8 @@ TC-08 & Smart TV & Tecla Enter/OK. & Carga lore y multimedia de fondo. & PASS \\
 TC-09 & PWA Smart TV & Modo offline. & Carga PWA desde cache sin red. & PASS \\
 TC-10 & Ecosistema & Sincronización SSE. & TV se actualiza en $<$ 1 segundo. & PASS \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \end{table}
 
 \section{Firma de Validación}

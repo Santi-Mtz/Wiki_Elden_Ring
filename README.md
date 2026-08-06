@@ -85,3 +85,5 @@ Este proyecto integra un ecosistema interactivo de tres dispositivos (Wearable, 
 
 **Alumno:** Santiago Alberto Martínez Hernández (Grupo: IDGS16)
 **Materia:** Desarrollo para Dispositivos Inteligentes - Evaluación 2 (Ecosistema Completo)
+
+Se utilizó inteligencia artificial para la corrección de errores de dicción y estructura.

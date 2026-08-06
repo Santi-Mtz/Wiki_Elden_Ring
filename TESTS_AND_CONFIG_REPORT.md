@@ -55,6 +55,7 @@ En lugar de emuladores, esta entrega utiliza dispositivos físicos reales para g
 ### 2.3 Simulación de Smart TV (Chrome DevTools)
 *   **Navegador**: Google Chrome (v126.0)
 *   **Resolución Configurada**: Fija en `1920px x 1080px` (Full HD) mediante emulación de dispositivo personalizada en DevTools.
+*   **User Agent Simulado**: `Mozilla/5.0 (Linux; GoogleTV; Chromecast) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36` (Chrome on Android TV)
 *   **Safe Zone**: Margen activo de seguridad del 5% (`padding: 54px 96px`).
 *   **Navegación**: Mapeada a la entrada física de teclado que simula el D-pad físico de la televisión.
 

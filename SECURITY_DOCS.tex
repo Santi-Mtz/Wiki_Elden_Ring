@@ -3,15 +3,45 @@
 \usepackage[spanish]{babel}
 \usepackage{hyperref}
 \usepackage{geometry}
+\usepackage{xcolor}
 \geometry{margin=1in}
-
-\title{Documentación de Seguridad, Privacidad (LFPDPPP) y PWA}
-\author{AEGIS Wiki - Elden Ring}
-\date{\today}
 
 \begin{document}
 
-\maketitle
+\begin{titlepage}
+    \centering
+    \vspace*{0.5cm}
+    {\fontsize{18}{22}\selectfont \textbf{UNIVERSIDAD TECNOLÓGICA DE QUERÉTARO} \par}
+    \vspace{0.6cm}
+    {\fontsize{14}{17}\selectfont División de Tecnologías de la Información y Comunicación \\ 
+    Ingeniería en Desarrollo y Gestión de Software \par}
+    \vspace{1.5cm}
+    
+    {\color{brown}\hrule height 2pt}
+    \vspace{0.6cm}
+    {\fontsize{20}{24}\selectfont \textbf{AEGIS Wiki - Elden Ring} \par}
+    \vspace{0.4cm}
+    {\fontsize{16}{20}\selectfont \textit{Documentación de Seguridad, Privacidad (LFPDPPP) y PWA (SA.4)} \par}
+    \vspace{0.6cm}
+    {\color{brown}\hrule height 2pt}
+    
+    \vspace{1.5cm}
+    {\fontsize{12}{15}\selectfont
+    \textbf{Asignatura:} Desarrollo para Dispositivos Inteligentes \\
+    \vspace{0.2cm}
+    \textbf{Evaluación:} Unidades 2 y 3: Integración del Ecosistema \\
+    \vspace{0.2cm}
+    \textbf{Nivel de Entrega:} SA - Satisfactorio \\
+    \vspace{0.2cm}
+    \textbf{Presenta:} Santiago Alberto Martínez Hernández \\
+    \vspace{0.2cm}
+    \textbf{Grupo / Cuatrimestre:} IDGS16 / Mayo - Agosto 2026 \par}
+    
+    \vfill
+    {\large Santiago de Querétaro, Qro., 2026 \par}
+\end{titlepage}
+
+\newpage
 
 \section{Introducción}
 Esta documentación cubre los aspectos legales, de privacidad y la lista de comprobación de seguridad requeridos por la materia \textbf{Desarrollo para Dispositivos Inteligentes} para la \textbf{Evaluación 2 (Ecosistema Completo)}.
@@ -68,5 +98,8 @@ Para comunicaciones inter-pestañas mediante \texttt{BroadcastChannel}, se añad
 
 \subsection{Uso de HTTPS y Cifrado}
 El backend en Render y la PWA en Vercel imponen de manera obligatoria la redirección de tráfico a canales seguros cifrados con el protocolo \textbf{HTTPS / TLS 1.3}. Se rechaza la transferencia sobre HTTP plano.
+
+\subsection{Subresource Integrity (SRI)}
+Se habilitó \texttt{"subresourceIntegrity": true} en \texttt{angular.json} para las compilaciones de producción de la PWA. Esto añade de forma automática firmas hashes criptográficas (\texttt{integrity="sha384-..."}) a todas las hojas de estilo y scripts cargados por el navegador, garantizando que los archivos de la app no hayan sido alterados o manipulados por terceros (ataques Man-in-the-Middle o inyecciones maliciosas) (\textbf{SA.4}).
 
 \end{document}

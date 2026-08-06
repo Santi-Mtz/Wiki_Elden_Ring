@@ -5,15 +5,45 @@
 \usepackage{geometry}
 \usepackage{booktabs}
 \usepackage{graphicx}
+\usepackage{xcolor}
 \geometry{margin=1in}
-
-\title{Reporte de Configuración de Herramientas, Emuladores y Plan de Pruebas (SA.5 y SA.6)}
-\author{AEGIS Wiki - Elden Ring}
-\date{18 de Julio de 2026}
 
 \begin{document}
 
-\maketitle
+\begin{titlepage}
+    \centering
+    \vspace*{0.5cm}
+    {\fontsize{18}{22}\selectfont \textbf{UNIVERSIDAD TECNOLÓGICA DE QUERÉTARO} \par}
+    \vspace{0.6cm}
+    {\fontsize{14}{17}\selectfont División de Tecnologías de la Información y Comunicación \\ 
+    Ingeniería en Desarrollo y Gestión de Software \par}
+    \vspace{1.5cm}
+    
+    {\color{brown}\hrule height 2pt}
+    \vspace{0.6cm}
+    {\fontsize{20}{24}\selectfont \textbf{AEGIS Wiki - Elden Ring} \par}
+    \vspace{0.4cm}
+    {\fontsize{16}{20}\selectfont \textit{Reporte de Configuración de Herramientas, Emuladores y Plan de Pruebas (SA.5 y SA.6)} \par}
+    \vspace{0.6cm}
+    {\color{brown}\hrule height 2pt}
+    
+    \vspace{1.5cm}
+    {\fontsize{12}{15}\selectfont
+    \textbf{Asignatura:} Desarrollo para Dispositivos Inteligentes \\
+    \vspace{0.2cm}
+    \textbf{Evaluación:} Unidades 2 y 3: Integración del Ecosistema \\
+    \vspace{0.2cm}
+    \textbf{Nivel de Entrega:} SA - Satisfactorio \\
+    \vspace{0.2cm}
+    \textbf{Presenta:} Santiago Alberto Martínez Hernández \\
+    \vspace{0.2cm}
+    \textbf{Grupo / Cuatrimestre:} IDGS16 / Mayo - Agosto 2026 \par}
+    
+    \vfill
+    {\large Santiago de Querétaro, Qro., 2026 \par}
+\end{titlepage}
+
+\newpage
 
 \section{SA.6.A: Configuración de Herramientas de Desarrollo}
 
@@ -118,10 +148,59 @@ TC-10 & Ecosistema & Sincronización SSE. & TV se actualiza en $<$ 1 segundo. & 
 }
 \end{table}
 
+\section{SA.5 \& SA.6.B: Evidencia Visual (Dispositivos Físicos)}
+
+A continuación se presentan las capturas de pantalla de los tres dispositivos físicos que forman parte del ecosistema integrado de la Wiki de Elden Ring, funcionando de manera simultánea en tiempo real.
+
+\subsection{Evidencia del Wearable (Reloj Wear OS)}
+Muestra la interfaz del reloj físico con los sensores encendidos y transmitiendo los datos simulados.
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.45\textwidth]{assets/evidence/reloj_sensor_activo.jpeg}
+    \caption{Interfaz del Reloj Wear OS con sensores de telemetría activos.}
+\end{figure}
+
+\newpage
+\subsection{Evidencia del Teléfono (Recepción de Datos)}
+Muestra la pantalla de la tablet/celular con las métricas recibidas y actualizándose en tiempo real por Bluetooth BLE.
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.45\textwidth]{assets/evidence/telefono_ble_recepcion.jpeg}
+    \caption{Recepción y visualización de telemetría BLE en el dispositivo móvil.}
+\end{figure}
+
+\subsection{Evidencia de Alerta Médica de Descanso}
+Muestra la alerta visible en el teléfono cuando el tiempo de juego acumulado supera las 2 horas.
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.45\textwidth]{assets/evidence/telefono_alerta_ritmo.jpeg}
+    \caption{Alerta en pantalla tras superar el umbral crítico de tiempo de juego.}
+\end{figure}
+
+\newpage
+\subsection{Evidencia de la Smart TV PWA}
+Muestra la interfaz optimizada para Smart TV en resolución fija de 1920x1080 con grid 2x2.
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{assets/evidence/pwa_tv_grid_completo.png}
+    \caption{Vista de catálogo en 10-foot UI para la Smart TV PWA.}
+\end{figure}
+
+\subsection{Ecosistema Completo Funcionando Simultáneamente}
+Fotografía que muestra los tres dispositivos en funcionamiento simultáneo e integrado.
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.7\textwidth]{assets/evidence/ecosistema_tres_pantallas.jpeg}
+    \caption{Demostración del ecosistema integrado completo (3 dispositivos físicos).}
+\end{figure}
+
+\newpage
+
 \section{Firma de Validación}
 \begin{itemize}
     \item \textbf{Nombre del Alumno}: Santiago Alberto Martínez Hernández
-    \item \textbf{Fecha de Ejecucción}: 4 de Agosto de 2026
+    \item \textbf{Grupo}: IDGS16
+    \item \textbf{Fecha de Ejecución}: 4 de Agosto de 2026
     \item \textbf{Firma}: \textit{Validado académicamente bajo el ecosistema AEGIS Wiki.}
 \end{itemize}
 

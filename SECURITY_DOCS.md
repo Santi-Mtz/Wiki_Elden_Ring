@@ -21,7 +21,7 @@ El sistema procesa y almacena únicamente los siguientes datos personales:
 
 ## 2. Aviso de Privacidad Básico (Simulado)
 
-**Responsable del Tratamiento**: El alumno del cuatrimestre Mayo-Agosto 2026 de la asignatura *Desarrollo para Dispositivos Inteligentes*.
+**Responsable del Tratamiento**: Santiago Alberto Martínez Hernández (Grupo: IDGS16), alumno del cuatrimestre Mayo-Agosto 2026 de la asignatura *Desarrollo para Dispositivos Inteligentes*.
 
 **Finalidad del Tratamiento**:
 Los datos personales recabados serán utilizados exclusivamente para:

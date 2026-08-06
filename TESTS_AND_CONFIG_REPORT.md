@@ -160,6 +160,7 @@ A continuación, se listan los marcadores para incluir las capturas físicas exi
 
 ## 6. Firma de Validación
 *   **Nombre del Alumno**: Santiago Alberto Martínez Hernández
+*   **Grupo**: IDGS16
 *   **Fecha de Ejecución**: 4 de Agosto de 2026
-*   **Firma**: 
+*   **Firma**: *Validado académicamente bajo el ecosistema AEGIS Wiki.*
 

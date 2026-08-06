@@ -3,3 +3,4 @@ deploy/.env.production
 *.log
 .env
 *.env
+*.tex

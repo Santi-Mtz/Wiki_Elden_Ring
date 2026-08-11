@@ -19,7 +19,8 @@
 
 .topbar {
 	position: relative;
-	overflow: hidden;
+	z-index: 1000;
+	overflow: visible;
 	margin-bottom: 18px;
 	padding: 12px;
 	border-radius: 20px;

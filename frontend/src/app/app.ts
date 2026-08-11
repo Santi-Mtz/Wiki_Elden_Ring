@@ -322,6 +322,27 @@ export class App implements OnInit, OnDestroy {
     this.dropdownVisible.set(false);
   }
 
+  protected cycleTheme(): void {
+    const current = this.currentTheme();
+    if (current === 'theme-default') {
+      this.currentTheme.set('theme-golden-grace');
+      this.seasonBannerTitle.set('AEGIS Wiki · Solsticio de Oro');
+      this.seasonBannerSubtitle.set('Temporada de la Gracia Dorada - Actualizacion de Verano');
+    } else if (current === 'theme-golden-grace') {
+      this.currentTheme.set('theme-shadow-bramble');
+      this.seasonBannerTitle.set('AEGIS Wiki · Cosecha de Sombras');
+      this.seasonBannerSubtitle.set('Temporada del Fuego de la Zarza - Actualizacion de Otono');
+    } else if (current === 'theme-shadow-bramble') {
+      this.currentTheme.set('theme-frost-glintstone');
+      this.seasonBannerTitle.set('AEGIS Wiki · Invierno Helado');
+      this.seasonBannerSubtitle.set('Temporada de la Helada del Gigante - Actualizacion Invernal');
+    } else {
+      this.currentTheme.set('theme-default');
+      this.seasonBannerTitle.set('AEGIS Wiki');
+      this.seasonBannerSubtitle.set('Guia comunitaria de Elden Ring');
+    }
+  }
+
   ngOnInit(): void {
     this.isTvRoute.set(this.router.url === '/tv');
     this.router.events.subscribe(() => {

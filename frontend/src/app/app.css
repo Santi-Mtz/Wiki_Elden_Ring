@@ -829,21 +829,21 @@
 /* Botón flotante para cambiar temas (FAB) */
 .theme-fab {
 	position: fixed;
-	bottom: 24px;
-	left: 24px;
+	bottom: 16px;
+	right: 16px;
 	z-index: 9999;
 	display: flex;
 	align-items: center;
-	gap: 8px;
-	padding: 12px 18px;
-	border-radius: 30px;
+	gap: 6px;
+	padding: 8px 12px;
+	border-radius: 20px;
 	border: 1px solid #caa551 !important;
-	background: rgba(15, 20, 28, 0.92) !important;
+	background: rgba(15, 20, 28, 0.94) !important;
 	color: #caa551 !important;
 	font-weight: 700;
-	font-size: 0.88rem;
+	font-size: 0.78rem;
 	cursor: pointer;
-	box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), 0 0 10px rgba(202, 165, 81, 0.2);
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 8px rgba(202, 165, 81, 0.15);
 	transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 	backdrop-filter: blur(4px);
 }

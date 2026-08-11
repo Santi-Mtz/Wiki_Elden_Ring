@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, computed, effect, inject, signal } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { DatePipe } from '@angular/common';
@@ -310,6 +310,15 @@ export class App implements OnInit, OnDestroy {
   }
 
   protected hideDropdown(): void {
+    this.dropdownVisible.set(false);
+  }
+
+  protected toggleDropdown(): void {
+    this.dropdownVisible.update((v) => !v);
+  }
+
+  @HostListener('document:click')
+  protected onDocumentClick(): void {
     this.dropdownVisible.set(false);
   }
 

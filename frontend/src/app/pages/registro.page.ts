@@ -52,7 +52,45 @@ import { AuthService } from '../services/auth.service';
         </form>
       </p-card>
     </section>
-  `
+  `,
+  styles: [`
+    .auth-wrap {
+      max-width: 480px;
+      margin: 40px auto;
+      padding: 0 16px;
+    }
+    .auth-form {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 16px !important;
+    }
+    .auth-form label {
+      font-weight: 600;
+      color: #92a4b8;
+      margin-bottom: -8px;
+    }
+    .auth-form input,
+    .auth-form p-password {
+      width: 100% !important;
+    }
+    .auth-form ::ng-deep .p-password-input {
+      width: 100% !important;
+    }
+    .auth-form button {
+      width: 100% !important;
+      margin-top: 12px;
+    }
+    .auth-link {
+      text-align: center;
+      margin-top: 10px;
+      display: block;
+      color: #72a4f4;
+      text-decoration: none;
+    }
+    .auth-link:hover {
+      text-decoration: underline;
+    }
+  `]
 })
 export class RegistroPage {
   private readonly fb = inject(FormBuilder);

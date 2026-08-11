@@ -661,3 +661,28 @@
 	background: rgba(125, 225, 255, 0.12);
 	border-color: rgba(125, 225, 255, 0.3);
 }
+
+/* Correcciones de UI y UX */
+.nav-dropdown-trigger {
+	cursor: pointer;
+	user-select: none;
+}
+.nav-dropdown-trigger span {
+	display: inline-block;
+	white-space: nowrap;
+}
+.nav-dropdown-trigger .dropdown-arrow {
+	margin-left: 8px !important;
+	flex-shrink: 0;
+}
+.session-user-actions {
+	display: flex;
+	gap: 6px;
+	flex-wrap: wrap;
+	align-items: center;
+	margin-top: 8px;
+}
+.session-user-actions p-tag,
+.session-user-actions button {
+	flex: 1 1 auto;
+}

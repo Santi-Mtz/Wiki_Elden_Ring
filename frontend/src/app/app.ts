@@ -108,7 +108,15 @@ export class App implements OnInit, OnDestroy {
 
     return wikiItems.map((item) => ({ ...item, routerLink: '/login' }));
   });
-  protected readonly topSections = computed<Array<{ label: string; path: string; icon: string }>>(() => this.sections());
+  protected readonly topSections = computed<Array<{ label: string; path: string; icon: string }>>(() => {
+    const all = this.sections();
+    return all.filter((item) =>
+      item.label === 'Inicio' ||
+      item.label === 'Mi perfil' ||
+      item.label === 'Bitacora de Misiones' ||
+      item.label === 'Mapa interactivo'
+    );
+  });
   protected readonly filteredArmas = computed(() => {
     const term = this.search().trim().toLowerCase();
     const allArmas = this.armas();

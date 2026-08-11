@@ -83,10 +83,17 @@ export class ArmadurasPage implements OnInit, OnDestroy {
     this.http.get<Armadura[]>('/api/armaduras').subscribe({
       next: (data) => {
         const list = data ?? [];
-        const rawId = this.route.snapshot.queryParamMap.get('itemId');
+        const params = this.route.snapshot.queryParams;
+        const q = (params['q'] || '').trim().toLowerCase();
+        const rawId = params['itemId'];
         const targetId = rawId ? Number(rawId) : NaN;
-        const shouldFilterById = rawId !== null && Number.isFinite(targetId) && targetId > 0;
-        const filtered = shouldFilterById ? list.filter((item) => item.id === targetId) : list;
+
+        let filtered = list;
+        if (rawId !== null && Number.isFinite(targetId) && targetId > 0) {
+          filtered = list.filter((item) => item.id === targetId);
+        } else if (q) {
+          filtered = list.filter((item) => item.nombre.toLowerCase().includes(q));
+        }
 
         this.armaduras.set(filtered);
         this.focusTarget(filtered);

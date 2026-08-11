@@ -697,3 +697,23 @@ body {
 	border-color: #7de1ff !important;
 	box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4), 0 0 15px rgba(125, 225, 255, 0.25) !important;
 }
+
+/* Correcciones para botones contrastantes (severity="contrast") */
+.p-button-contrast,
+.p-button.p-button-contrast {
+	color: #0f131a !important;
+	background-color: #f3f4f6 !important;
+	border-color: #f3f4f6 !important;
+}
+
+.p-button-contrast:hover,
+.p-button.p-button-contrast:hover {
+	background-color: #e5e7eb !important;
+	border-color: #e5e7eb !important;
+}
+
+.p-button-contrast:active,
+.p-button.p-button-contrast:active {
+	background-color: #d1d5db !important;
+	border-color: #d1d5db !important;
+}

@@ -776,3 +776,52 @@
 ::ng-deep .wiki-card-grid .p-card:hover img {
 	transform: scale(1.05) !important;
 }
+
+/* Estilos premium para botones y etiquetas de herramientas de la Wiki (toolbar) */
+::ng-deep .section-toolbar p-tag .p-tag,
+::ng-deep .wiki-actions p-tag .p-tag {
+	background: rgba(202, 165, 81, 0.08) !important;
+	color: #caa551 !important;
+	border: 1px solid rgba(202, 165, 81, 0.3) !important;
+	font-weight: 600 !important;
+	padding: 6px 12px !important;
+	border-radius: 8px !important;
+	font-size: 0.85rem !important;
+}
+
+::ng-deep .section-toolbar .p-button,
+::ng-deep .section-toolbar button[pButton],
+::ng-deep .wiki-actions .p-button,
+::ng-deep .wiki-actions button[pButton] {
+	background: linear-gradient(160deg, rgba(26, 39, 58, 0.72), rgba(19, 31, 47, 0.78)) !important;
+	color: #dce6f3 !important;
+	border: 1px solid #314258 !important;
+	box-shadow: inset 0 1px 0 rgba(130, 165, 215, 0.08) !important;
+	border-radius: 8px !important;
+	padding: 8px 14px !important;
+	font-weight: 600 !important;
+	font-size: 0.9rem !important;
+	transition: all 0.2s ease !important;
+	display: inline-flex !important;
+	align-items: center !important;
+}
+
+::ng-deep .section-toolbar .p-button:hover,
+::ng-deep .section-toolbar button[pButton]:hover,
+::ng-deep .wiki-actions .p-button:hover,
+::ng-deep .wiki-actions button[pButton]:hover {
+	border-color: #caa551 !important;
+	color: #ffffff !important;
+	background: linear-gradient(160deg, rgba(38, 56, 82, 0.82), rgba(26, 42, 64, 0.88)) !important;
+	box-shadow: 0 0 12px rgba(202, 165, 81, 0.25) !important;
+	transform: translateY(-1px) !important;
+}
+
+::ng-deep .section-toolbar .p-button i,
+::ng-deep .section-toolbar button[pButton] i,
+::ng-deep .wiki-actions .p-button i,
+::ng-deep .wiki-actions button[pButton] i {
+	color: #caa551 !important;
+	font-size: 0.9rem !important;
+	margin-right: 6px !important;
+}

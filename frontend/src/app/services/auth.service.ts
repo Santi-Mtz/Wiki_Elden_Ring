@@ -8,6 +8,7 @@ type AuthResponse = {
   user?: SessionUser;
   mfaRequired?: boolean;
   mfaToken?: string;
+  token?: string;
 };
 
 type MfaSetupStartResponse = {
@@ -27,6 +28,7 @@ export type SessionUser = {
   email: string;
   role: 'admin' | 'user';
   mfaEnabled?: boolean;
+  token?: string;
 };
 
 @Injectable({
@@ -47,7 +49,7 @@ export class AuthService {
     return this.http.post<AuthResponse>('/api/auth/login', payload).pipe(
       tap((response) => {
         if (response.user) {
-          this.setUser(response.user);
+          this.setUser({ ...response.user, token: response.token });
         }
       })
     );
@@ -57,7 +59,7 @@ export class AuthService {
     return this.http.post<AuthResponse>('/api/auth/mfa/login/verify', payload).pipe(
       tap((response) => {
         if (response.user) {
-          this.setUser(response.user);
+          this.setUser({ ...response.user, token: response.token });
         }
       })
     );
@@ -104,7 +106,7 @@ export class AuthService {
     return this.http.post<AuthResponse>('/api/auth/register', payload).pipe(
       tap((response) => {
         if (response.user) {
-          this.setUser(response.user);
+          this.setUser({ ...response.user, token: response.token });
         }
       })
     );
@@ -139,6 +141,7 @@ export class AuthService {
   private getAdminHeaders() {
     const current = this.currentUserSignal();
     return {
+      'Authorization': current?.token ? `Bearer ${current.token}` : '',
       'x-user-role': current?.role || '',
       'x-user-email': current?.email || ''
     };
@@ -198,7 +201,8 @@ export class AuthService {
         nombre: parsed.nombre,
         email: parsed.email,
         role: parsed.role === 'admin' ? 'admin' : 'user',
-        mfaEnabled: Boolean(parsed.mfaEnabled)
+        mfaEnabled: Boolean(parsed.mfaEnabled),
+        token: parsed.token
       };
     } catch {
       return null;

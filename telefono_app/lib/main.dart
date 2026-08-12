@@ -162,9 +162,13 @@ class EcosystemState extends ChangeNotifier {
   // Sincronizar selección con la Smart TV
   Future<bool> publishWeaponSelect(int weaponId) async {
     try {
+      final headers = {
+        'Content-Type': 'application/json',
+        if (_token != null) 'Authorization': 'Bearer $_token',
+      };
       final response = await http.post(
         Uri.parse('$_activeServerUrl/sync/publish'),
-        headers: {'Content-Type': 'application/json'},
+        headers: headers,
         body: jsonEncode({
           'event': 'weapon-select',
           'data': {'id': weaponId}
@@ -173,7 +177,7 @@ class EcosystemState extends ChangeNotifier {
         const Duration(seconds: 3),
         onTimeout: () => http.post(
           Uri.parse('$backendUrl/sync/publish'),
-          headers: {'Content-Type': 'application/json'},
+          headers: headers,
           body: jsonEncode({
             'event': 'weapon-select',
             'data': {'id': weaponId}
@@ -189,9 +193,13 @@ class EcosystemState extends ChangeNotifier {
 
   Future<bool> publishViewMode(String mode) async {
     try {
+      final headers = {
+        'Content-Type': 'application/json',
+        if (_token != null) 'Authorization': 'Bearer $_token',
+      };
       final response = await http.post(
         Uri.parse('$_activeServerUrl/sync/publish'),
-        headers: {'Content-Type': 'application/json'},
+        headers: headers,
         body: jsonEncode({
           'event': 'view-mode',
           'data': {'mode': mode}
@@ -200,7 +208,7 @@ class EcosystemState extends ChangeNotifier {
         const Duration(seconds: 3),
         onTimeout: () => http.post(
           Uri.parse('$backendUrl/sync/publish'),
-          headers: {'Content-Type': 'application/json'},
+          headers: headers,
           body: jsonEncode({
             'event': 'view-mode',
             'data': {'mode': mode}
@@ -466,7 +474,7 @@ class _LoginScreenState extends State<LoginScreen> {
       final data = jsonDecode(response.body);
       if (response.statusCode == 200 && (data['token'] != null || data['user'] != null)) {
         if (!mounted) return;
-        await state.saveSession(data['token'] ?? "mock_token", data['user']);
+        await state.saveSession(data['token'] ?? "", data['user']);
       } else {
         setState(() => _error = data['message'] ?? "Credenciales inválidas.");
       }

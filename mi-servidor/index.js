@@ -1,14 +1,17 @@
+require('dotenv').config(); // Cargar env variables primero
 const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const crypto = require('node:crypto');
 const QRCode = require('qrcode');
 const { generateSecret, generateURI, verifySync } = require('otplib');
+const jwt = require('jsonwebtoken');
 const pool = require('./db'); // Importamos la conexión
 const app = express();
 const serverPort = Number(process.env.PORT || 3000);
 const serverHost = String(process.env.HOST || '0.0.0.0');
 const adminEmail = String(process.env.ADMIN_EMAIL || 'admin@aegis.com').trim().toLowerCase();
+const jwtSecret = process.env.JWT_SECRET || 'aegis_secret_key_123456';
 let databaseAvailable = false;
 let inMemoryUserId = 1;
 const inMemoryUsers = [];
@@ -37,8 +40,20 @@ const corsOptions = {
 };
 
 function hasAdminAccess(req) {
-  const role = String(req.headers['x-user-role'] || '').trim().toLowerCase();
-  return role === 'admin';
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  
+  if (!token) {
+    return false;
+  }
+
+  try {
+    const decoded = jwt.verify(token, jwtSecret);
+    return decoded.role === 'admin';
+  } catch (err) {
+    console.error('Error al validar token de admin:', err.message);
+    return false;
+  }
 }
 
 function ensureAdmin(req, res) {
@@ -583,10 +598,11 @@ app.post('/auth/login', async (req, res) => {
       }
 
       await logAuditoria(normalizedEmail, req, 'Inicio de sesión');
-
+      const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, jwtSecret, { expiresIn: '24h' });
       return res.json({
         message: 'Inicio de sesión exitoso.',
-        user: buildSessionUser(user)
+        user: buildSessionUser(user),
+        token: token
       });
     }
 
@@ -614,10 +630,11 @@ app.post('/auth/login', async (req, res) => {
     }
 
     await logAuditoria(normalizedEmail, req, 'Inicio de sesión (modo local)');
-
+    const token = jwt.sign({ id: user.id, email: user.email, role: user.role || 'user' }, jwtSecret, { expiresIn: '24h' });
     return res.json({
       message: 'Inicio de sesión exitoso (modo local).',
-      user: buildSessionUser(user)
+      user: buildSessionUser(user),
+      token: token
     });
   } catch (err) {
     console.error(err.message);
@@ -660,9 +677,11 @@ app.post('/auth/mfa/login/verify', async (req, res) => {
 
       mfaLoginChallenges.delete(String(mfaToken));
       await logAuditoria(user.email, req, 'Inicio de sesión (MFA verificado)');
+      const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, jwtSecret, { expiresIn: '24h' });
       return res.json({
         message: 'Inicio de sesión exitoso con MFA.',
-        user: buildSessionUser(user)
+        user: buildSessionUser(user),
+        token: token
       });
     }
 
@@ -683,9 +702,11 @@ app.post('/auth/mfa/login/verify', async (req, res) => {
 
     mfaLoginChallenges.delete(String(mfaToken));
     await logAuditoria(user.email, req, 'Inicio de sesión (MFA verificado, local)');
+    const token = jwt.sign({ id: user.id, email: user.email, role: user.role || 'user' }, jwtSecret, { expiresIn: '24h' });
     return res.json({
       message: 'Inicio de sesión exitoso con MFA (modo local).',
-      user: buildSessionUser(user)
+      user: buildSessionUser(user),
+      token: token
     });
   } catch (err) {
     console.error(err.message);
@@ -1187,6 +1208,17 @@ app.get('/sync/subscribe', (req, res) => {
 });
 
 app.post('/sync/publish', (req, res) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  if (!token) {
+    return res.status(401).json({ message: 'No autorizado. Token no proporcionado.' });
+  }
+  try {
+    jwt.verify(token, jwtSecret);
+  } catch (err) {
+    return res.status(403).json({ message: 'Token inválido o expirado.' });
+  }
+
   const { event, data } = req.body ?? {};
   if (!event) {
     return res.status(400).json({ message: 'El nombre del evento es obligatorio.' });
